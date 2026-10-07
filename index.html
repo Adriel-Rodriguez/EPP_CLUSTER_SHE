@@ -891,13 +891,22 @@ function skuFor(item){
 }
 
 // Convierte "13/9/2026 10:53:07" -> Date. Devuelve null si no logra parsear.
+// Acepta también: solo fecha ("7/10/2026"), "2:05:00 p. m." y "2026-10-07 14:05:00".
 function parseMarca(str){
   if (!str) return null;
-  const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-  if (!m) return null;
-  const [, d, mo, y, h, mi, s] = m;
-  return new Date(+y, +mo-1, +d, +h, +mi, +(s||0));
+  str = String(str).trim();
+  let m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[\s,]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(?:([ap])\.?\s*m\.?)?)?/i);
+  if (m){
+    let [, d, mo, y, h, mi, sec, ap] = m;
+    h = +(h||0);
+    if (ap){ ap = ap.toLowerCase(); if (ap==='p' && h<12) h += 12; if (ap==='a' && h===12) h = 0; }
+    return new Date(+y, +mo-1, +d, h, +(mi||0), +(sec||0));
+  }
+  m = str.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0));
+  return null;
 }
+function marcaTieneHora(str){ return /\d{1,2}:\d{2}/.test(String(str||'')); }
 
 function renderGrid(containerId, items, order){
   const container = document.getElementById(containerId);
@@ -1079,7 +1088,7 @@ function movCategoria(m){
 }
 function fechaHora(marca){
   const d = parseMarca(marca); if (!d) return [marca||'—',''];
-  return [`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`, `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`];
+  return [`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`, marcaTieneHora(marca) ? `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '—'];
 }
 function campo(lab, val, full){ return val ? `<div class="hd-f${full?' full':''}"><div class="hd-l">${escHtml(lab)}</div><div class="hd-v">${val}</div></div>` : ''; }
 
@@ -1361,12 +1370,13 @@ function compute(){
   else if (state.period==='week') buckets = DIA3.map(l=>({label:l}));
   else if (state.period==='month'){ const n = Math.round((end-start)/864e5); buckets = Array.from({length:n},(_,k)=>({label:String(k+1)})); }
   else buckets = MES3.map(l=>({label:l}));
-  buckets.forEach(b=>{ b.rec=0; b.ent=0; b.oth=0; });
+  buckets.forEach(b=>{ b.rec=0; b.ent=0; b.oth=0; b.aj=0; });
   rows.forEach(({d,c,q})=>{
     const k = state.period==='day' ? Math.floor(d.getHours()/2) : state.period==='week' ? (d.getDay()+6)%7 : state.period==='month' ? d.getDate()-1 : d.getMonth();
     const b = buckets[k]; if (!b) return;
     if (c==='proveedor'||c==='entradaOtra') b.rec+=q; else if (c==='entrega') b.ent+=q;
     else if (c==='baja'||c==='prestamoOut'||c==='salidaOtra') b.oth+=q;
+    else if (c==='ajusteIn') b.aj+=q;
   });
   // por site (comparativo)
   const porSite = sites.map(s=>({ site:s, a:agg(rows.filter(x=>x.r.site===s)) }));
@@ -1482,15 +1492,16 @@ function alcance(){ return state.site==='ALL' ? 'los 4 sites' : state.site; }
 function slideResumen(D,info){
   const a = D.a, N = a.cols.size, mc = cnt(a.motivo), tm = top1(mc), pct = tm && N ? Math.round(100*tm[1]/N) : 0;
   const els = frame('Análisis de EPP · '+(state.site==='ALL'?'Todos los sites':state.site), `${etiquetaPeriodo()} · ${fmt(D.rows.length)} movimientos registrados`, 1, info);
-  els.push(...kpi(40,132,290,108,fmt(a.rec),'piezas recibidas'));
-  els.push(...kpi(344,132,290,108,fmt(a.ent),`piezas entregadas a ${fmt(N)} ${plural(N,'colaborador','colaboradores')}`));
-  els.push(card(648,132,330,108), T(668,138,140,96,N?pct+'%':'—',{ size:46, bold:true, color:C.ora, valign:'middle' }),
-           T(800,140,166,92,tm?`de los colaboradores recibieron EPP por ${shortMotivo(tm[0]).toLowerCase()}`:'sin entregas en este periodo',{ size:13.5, color:C.ink, valign:'middle' }));
-  els.push(...kpi(992,132,248,108,fmt(a.bajas),'piezas dadas de baja'));
+  els.push(...kpi(40,132,218,108,fmt(a.rec),'piezas recibidas'));
+  els.push(...kpi(272,132,250,108,fmt(a.ent),`piezas entregadas a ${fmt(N)} ${plural(N,'colaborador','colaboradores')}`));
+  els.push(card(536,132,300,108), T(552,138,120,96,N?pct+'%':'—',{ size:42, bold:true, color:C.ora, valign:'middle' }),
+           T(672,140,152,92,tm?`de los colaboradores recibieron EPP por ${shortMotivo(tm[0]).toLowerCase()}`:'sin entregas en este periodo',{ size:13, color:C.ink, valign:'middle' }));
+  els.push(...kpi(850,132,190,108,fmt(a.bajas),'piezas dadas de baja'));
+  els.push(...kpi(1054,132,186,108,'+'+fmt(a.ajIn),`ajustes de inventario${a.ajOut?` (−${fmt(a.ajOut)})`:''}`,{ size:36 }));
   // tiempo
   els.push(card(40,254,740,300), ...titulo(62,264,420,'Movimientos de EPP en el tiempo','Piezas por '+({day:'bloque de 2 horas',week:'día',month:'día del mes',year:'mes'}[state.period])));
-  els.push(...leyenda(430,270,[['Recibido',C.blue],['Entregado',C.ora],['Otras salidas',C.navy]]));
-  els.push(...stacked(62,300,696,246,D.buckets,[{key:'rec',color:C.blue},{key:'ent',color:C.ora},{key:'oth',color:C.navy}]));
+  els.push(...leyenda(340,290,[['Recibido',C.blue],['Entregado',C.ora],['Otras salidas',C.navy],['Ajustes (+)','#8C93F0']]));
+  els.push(...stacked(62,300,696,246,D.buckets,[{key:'rec',color:C.blue},{key:'ent',color:C.ora},{key:'oth',color:C.navy},{key:'aj',color:'#8C93F0'}]));
   // motivos
   els.push(card(794,254,446,300), ...titulo(816,264,400,'¿Por qué se entregó?','Colaboradores por motivo del cambio'));
   const ms = sortDesc(mc).slice(0,6).map(([k,v])=>[shortMotivo(k),v]);
