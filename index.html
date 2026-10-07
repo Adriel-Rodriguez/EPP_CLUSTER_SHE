@@ -661,9 +661,10 @@ let currentSite = localStorage.getItem('epp_current_site') || DEFAULT_SITE;
 if (!SITES.includes(currentSite)) currentSite = DEFAULT_SITE; // por si quedó guardado un site ya retirado (ej. MXCD12)
 
 // ---- Áreas (Cuarto de EPP vs Almacén) ----
-const AREAS = ["Cuarto de EPP","Almacén"];
+const AREAS = ["Almacén","Cuarto de EPP"];   // la primera pestaña es la que se abre por defecto
 const DEFAULT_AREA = "Cuarto de EPP"; // registros históricos sin "Ubicación del EPP" capturado se asignan aquí
-let currentArea = localStorage.getItem('epp_current_area') || DEFAULT_AREA;
+let currentArea = localStorage.getItem('epp_current_area_v2') || 'Almacén';
+if (!AREAS.includes(currentArea)) currentArea = 'Almacén';
 
 let ALL_ITEMS = [];
 let ALL_MOVEMENTS = [];
@@ -699,7 +700,7 @@ function renderAreaTabs(){
     btn.innerHTML = `${area} <span class="n">👞 ${totalCalzado}</span><span class="n">🧤 ${totalGuantes}</span>`;
     btn.addEventListener('click', ()=>{
       currentArea = area;
-      localStorage.setItem('epp_current_area', currentArea);
+      localStorage.setItem('epp_current_area_v2', currentArea);
       renderAreaTabs();
       updateAreaLabel();
       renderAll(filterCurrent(ALL_ITEMS));
@@ -1373,12 +1374,22 @@ function compute(){
   const items = ALL_ITEMS.filter(i=>sites.includes(i.site));
   const cuarto = sites.flatMap(s=>completarTallas(items.filter(i=>i.site===s && i.area==='Cuarto de EPP'), s, 'Cuarto de EPP')), alm = items.filter(i=>i.area==='Almacén');
   const sum = (arr,t) => arr.filter(i=>i.tipo===t).reduce((s,i)=>s+i.piezas,0);
-  const alertas = cuarto.filter(i=>estadoFor(i)!=='ok').map(i=>({ site:i.site, item:i, e:estadoFor(i) }))
+  // Existencias totales por site y talla (Cuarto de EPP + Almacén): sobre esto se calculan las alertas
+  const comb = sites.flatMap(s=>{
+    const m = new Map();
+    completarTallas(items.filter(i=>i.site===s && i.area==='Cuarto de EPP'), s, 'Cuarto de EPP').concat(items.filter(i=>i.site===s && i.area!=='Cuarto de EPP')).forEach(i=>{
+      const k = i.tipo+'|'+labelFor(i);
+      if (m.has(k)) m.get(k).piezas += i.piezas; else m.set(k, { ...i, area:'Total' });
+    });
+    return Array.from(m.values());
+  });
+  const alertas = comb.filter(i=>estadoFor(i)!=='ok').map(i=>({ site:i.site, item:i, e:estadoFor(i) }))
       .sort((x,y)=>({danger:0,warn:1,over:2}[x.e]-{danger:0,warn:1,over:2}[y.e]) || x.site.localeCompare(y.site));
-  const stock = { cCal:sum(cuarto,'Calzado'), cGua:sum(cuarto,'Guantes de seguridad'), aCal:sum(alm,'Calzado'), aGua:sum(alm,'Guantes de seguridad'),
-                  agot:cuarto.filter(i=>estadoFor(i)==='danger').length, esc:cuarto.filter(i=>estadoFor(i)==='warn').length, sobre:cuarto.filter(i=>estadoFor(i)==='over').length, alertas, cuarto };
+  const stock = { almItems:alm, cCal:sum(cuarto,'Calzado'), cGua:sum(cuarto,'Guantes de seguridad'), aCal:sum(alm,'Calzado'), aGua:sum(alm,'Guantes de seguridad'),
+                  agot:comb.filter(i=>estadoFor(i)==='danger').length, esc:comb.filter(i=>estadoFor(i)==='warn').length, sobre:comb.filter(i=>estadoFor(i)==='over').length, alertas, cuarto };
   const porSiteStock = sites.map(s=>{ const it = cuarto.filter(i=>i.site===s);
-    return { site:s, cal:sum(it,'Calzado'), gua:sum(it,'Guantes de seguridad'), alert:it.filter(i=>estadoFor(i)!=='ok').length }; });
+    const todo = items.filter(i=>i.site===s);       // existencias = Cuarto de EPP + Almacén
+    return { site:s, cal:sum(todo,'Calzado'), gua:sum(todo,'Guantes de seguridad'), alert:comb.filter(i=>i.site===s && estadoFor(i)!=='ok').length }; });
   return { start, end, sites, rows, a, buckets, porSite, stock, porSiteStock, ultimo: todos.length ? todos.reduce((m,x)=>x.d>m?x.d:m, todos[0].d) : null, total: todos.length };
 }
 
@@ -1571,15 +1582,14 @@ function slideRecibido(D,info){
 
 function slideInventario(D,info){
   const S = D.stock;
-  const els = frame('Inventario al corte y alertas', `${alcance()} · Cuarto de EPP · nivel mínimo y máximo por talla`, 4, info);
-  els.push(...kpi(40,132,236,100,fmt(S.cCal),'calzado en cuarto de EPP',{ size:38 }), ...kpi(288,132,236,100,fmt(S.cGua),'guantes en cuarto de EPP',{ size:38 }),
+  const els = frame('Inventario al corte y alertas', `${alcance()} · Cuarto de EPP + Almacén · alertas de mínimo y máximo sobre el total`, 4, info);
+  els.push(...kpi(40,132,236,100,fmt(S.cCal+S.aCal),`calzado total\nCuarto ${fmt(S.cCal)} · Almacén ${fmt(S.aCal)}`,{ size:38 }), ...kpi(288,132,236,100,fmt(S.cGua+S.aGua),`guantes total\nCuarto ${fmt(S.cGua)} · Almacén ${fmt(S.aGua)}`,{ size:38 }),
     ...kpi(536,132,236,100,fmt(S.agot),'tallas agotadas',{ size:38, color:S.agot?C.red:C.navy }), ...kpi(784,132,236,100,fmt(S.esc),'tallas en escasez',{ size:38, color:S.esc?C.amber:C.navy }),
     ...kpi(1032,132,208,100,fmt(S.sobre),'con sobreinventario',{ size:38, color:S.sobre?C.over:C.navy }));
   // calzado por talla
-  els.push(card(40,246,620,338), ...titulo(62,256,560,'Calzado por talla','Cuarto de EPP · '+(state.site==='ALL'?'suma de los sites':'color según nivel')));
-  const base = {}; S.cuarto.filter(i=>i.tipo==='Calzado').forEach(i=>{ base[i.talla] = (base[i.talla]||0)+i.piezas; });
-  const col = t => { if (state.site==='ALL') return C.blue; const it = S.cuarto.find(i=>i.tipo==='Calzado'&&i.talla===t); const e = it?estadoFor(it):'ok'; return e==='danger'?C.red:e==='warn'?C.amber:e==='over'?C.over:C.navy; };
-  els.push(...vbars(62,296,578,282,SHOE_ORDER.map(t=>({ label:t, v:base[t]||0, color:col(t) })),{ lsize:12 }));
+  els.push(card(40,246,620,338), ...titulo(62,256,300,'Calzado por talla','Piezas en Cuarto de EPP y Almacén'), ...leyenda(400,262,[['Cuarto de EPP',C.navy],['Almacén',C.blue]]));
+  const cb = {}, ab = {}; S.cuarto.filter(i=>i.tipo==='Calzado').forEach(i=>{ cb[i.talla] = (cb[i.talla]||0)+i.piezas; }); S.almItems.filter(i=>i.tipo==='Calzado').forEach(i=>{ ab[i.talla] = (ab[i.talla]||0)+i.piezas; });
+  els.push(...stacked(62,296,578,282,SHOE_ORDER.map(t=>({ label:t, c:cb[t]||0, a:ab[t]||0 })),[{ key:'c', color:C.navy },{ key:'a', color:C.blue }]));
   // alertas
   els.push(card(674,246,566,338), ...titulo(696,256,520,'Alertas de stock','Agotado · Escasez · Sobreinventario'));
   const al = S.alertas.slice(0,8), rh = 31;
@@ -1597,7 +1607,7 @@ function slideInventario(D,info){
 }
 
 function slideComparativo(D,info){
-  const els = frame('Comparativo entre sites', `${etiquetaPeriodo()} · ${SITES.join(', ')}`, 5, info);
+  const els = frame('Comparativo entre sites', `${etiquetaPeriodo()} · ${SITES.join(', ')} · existencias = Cuarto de EPP + Almacén`, 5, info);
   const cols = [['Site',110,'left'],['Recibido',110,'right'],['Entregado',110,'right'],['Colabor.',110,'right'],['Bajas',90,'right'],['Prest. dado',110,'right'],['Prest. recib.',110,'right'],['Calzado',100,'right'],['Guantes',100,'right'],['Alertas',90,'right']];
   const tw = cols.reduce((s,c)=>s+c[1],0), x0 = 62, y0 = 150;
   els.push(card(40,132,1200,330));
@@ -1633,7 +1643,7 @@ function slideHTML(sl){
     if (e.t==='r') return `<div style="position:absolute;left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px;background:${e.fill};border-radius:${Math.min(e.r||0,Math.min(e.w,e.h)/2)}px;box-sizing:border-box;${e.line?`border:1.5px solid ${e.line};`:''}"></div>`;
     if (!e.text) return '';
     const safe = e.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return `<div style="position:absolute;left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px;display:flex;align-items:${ptj[e.valign]};justify-content:${ptx[e.align]};overflow:hidden;font:${e.bold?800:600} ${e.size}px/1.25 ${FONT};color:${e.color}"><div style="width:100%;text-align:${e.align}">${safe}</div></div>`;
+    return `<div style="position:absolute;left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px;display:flex;align-items:${ptj[e.valign]};justify-content:${ptx[e.align]};overflow:hidden;font:${e.bold?800:600} ${e.size}px/1.25 ${FONT};color:${e.color}"><div style="width:100%;text-align:${e.align};white-space:pre-line">${safe}</div></div>`;
   }).join('');
 }
 function pintar(){
