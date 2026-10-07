@@ -471,6 +471,18 @@
     .hist-row .hc:nth-child(6){grid-area:an;text-align:right;font-size:12px;}
     .hist-row .hc:nth-child(7){grid-area:caret;text-align:right;}
   }
+
+  /* Modo oscuro de la pestaña Análisis (las diapositivas se quedan claras: son lo que se descarga) */
+  :root[data-theme="dark"] .an-seg{ background:var(--track); }
+  :root[data-theme="dark"] .an-seg button{ color:var(--dk-ink); }
+  :root[data-theme="dark"] .an-seg button.active{ background:var(--yellow); color:#1F234F; }
+  :root[data-theme="dark"] .an-trig,
+  :root[data-theme="dark"] .an-btn:not(.solid),
+  :root[data-theme="dark"] .an-nav button{ background:var(--bg-card); color:var(--dk-ink); border-color:#5b62c9; }
+  :root[data-theme="dark"] .an-trig:hover,:root[data-theme="dark"] .an-trig[aria-expanded="true"]{ background:var(--track); }
+  :root[data-theme="dark"] .an-btn.solid{ background:var(--yellow); color:#1F234F; }
+  :root[data-theme="dark"] .an-msg{ color:var(--dk-ink); }
+  :root[data-theme="dark"] .view-tab{ color:var(--text-secondary); }
 </style>
 </head>
 <body>
@@ -716,7 +728,7 @@ function renderSiteSelector(){
     select.appendChild(opt);
   });
   select.addEventListener('change', ()=>{
-    currentSite = select.value;
+    currentSite = select.value; HIST_LIMIT = 10;
     localStorage.setItem('epp_current_site', currentSite);
     updateSiteLabels();
     renderAreaTabs();
@@ -735,7 +747,7 @@ function renderAreaTabs(){
     btn.className = 'area-tab' + (area === currentArea ? ' active' : '');
     btn.innerHTML = `${area} <span class="n">👞 ${totalCalzado}</span><span class="n">🧤 ${totalGuantes}</span>`;
     btn.addEventListener('click', ()=>{
-      currentArea = area;
+      currentArea = area; HIST_LIMIT = 10;
       localStorage.setItem('epp_current_area_v2', currentArea);
       renderAreaTabs();
       updateAreaLabel();
@@ -960,7 +972,7 @@ function renderGrid(containerId, items, order){
     div.innerHTML = `
       ${isAnomaly ? `<span class="anom" title="Formato inusual: revisar captura original">✳️</span>` : ''}
       ${estado==='danger' ? '<span class="flag">🔴</span>' : (estado==='warn' ? '<span class="flag">⚠️</span>' : (estado==='over' ? '<span class="flag">📦</span>' : ''))}
-      <div class="talla">Talla ${labelFor(item)}</div>
+      <div class="talla">Talla ${escHtml(labelFor(item))}</div>
       <div class="piezas">${item.piezas}</div>
       <div class="estado">${estado==='ok' ? '' : estadoLabel(estado)}</div>
       ${rango ? `<div class="rango">${rango}</div>` : ''}
@@ -1089,9 +1101,9 @@ function renderInventoryTable(items){
     const catClass = item.tipo === 'Calzado' ? '' : 'guantes';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="inv-sku">${skuFor(item)}</span></td>
-      <td><div class="inv-cat ${catClass}"><span class="sw"></span>${item.tipo}</div></td>
-      <td>${labelFor(item)} ${isAnomaly ? '<span title="Formato inusual: revisar captura original">✳️</span>' : ''}</td>
+      <td><span class="inv-sku">${escHtml(skuFor(item))}</span></td>
+      <td><div class="inv-cat ${catClass}"><span class="sw"></span>${escHtml(item.tipo)}</div></td>
+      <td>${escHtml(labelFor(item))} ${isAnomaly ? '<span title="Formato inusual: revisar captura original">✳️</span>' : ''}</td>
       <td><span class="inv-piezas ${estado!=='ok'?estado:''}">${item.piezas.toLocaleString()}</span></td>
       <td>
         <div class="inv-level ${estado!=='ok'?estado:''}">
@@ -1123,7 +1135,7 @@ function movCategoria(m){
   return m.piezas<0 ? 'Salida de EPP' : 'Entrada de EPP';
 }
 function fechaHora(marca){
-  const d = parseMarca(marca); if (!d) return [marca||'—',''];
+  const d = parseMarca(marca); if (!d) return [escHtml(marca||'—'),''];
   return [`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`, marcaTieneHora(marca) ? `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '—'];
 }
 function campo(lab, val, full){ return val ? `<div class="hd-f${full?' full':''}"><div class="hd-l">${escHtml(lab)}</div><div class="hd-v">${val}</div></div>` : ''; }
