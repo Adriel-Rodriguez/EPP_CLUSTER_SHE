@@ -19,6 +19,7 @@
     --ok:#2D3277;
     --warn:#F5A623;
     --danger:#E1332B;
+    --over:#2F6FDB;
     --radius:16px;
     --gap:18px;
   }
@@ -227,6 +228,15 @@
   }
   .size-tile.warn{background:#FFF7E8;border-color:#FCE3AE;}
   .size-tile.danger{background:#FDEDEC;border-color:#F6C6C3;}
+  .size-tile.over{background:#EAF2FF;border-color:#BBD4FB;}
+  .size-tile.over .piezas{color:var(--over);}
+  .size-tile.over .estado{color:var(--over);}
+  .size-tile .rango{font-size:10px;color:var(--text-secondary);margin-top:3px;font-variant-numeric:tabular-nums;}
+  .inv-badge.over{background:#E3EDFE;color:var(--over);}
+  .inv-level.over .fill{background:var(--over);}
+  .inv-piezas.over{color:var(--over);}
+  .kpi-value.over{color:var(--over);}
+  .legend-row .dot.over{background:var(--over);}
   .size-tile .talla{font-size:12px;color:var(--text-secondary);font-weight:600;margin-bottom:6px;}
   .size-tile .piezas{font-size:24px;font-weight:800;color:var(--navy);}
   .size-tile.warn .piezas{color:var(--warn);}
@@ -333,6 +343,14 @@
   :root[data-theme="dark"] .inv-piezas.warn{ color:#F5A623; }
   :root[data-theme="dark"] .size-tile.danger .piezas,
   :root[data-theme="dark"] .inv-piezas.danger{ color:#ff6b62; }
+  :root[data-theme="dark"] .size-tile.over{ background:#16254a; border-color:#2c4a86; }
+  :root[data-theme="dark"] .size-tile.over .piezas,
+  :root[data-theme="dark"] .size-tile.over .estado,
+  :root[data-theme="dark"] .inv-piezas.over,
+  :root[data-theme="dark"] .kpi-value.over{ color:#7FB0FF; }
+  :root[data-theme="dark"] .inv-badge.over{ background:#16254a; color:#7FB0FF; }
+  :root[data-theme="dark"] .inv-level.over .fill,
+  :root[data-theme="dark"] .legend-row .dot.over{ background:#7FB0FF; }
   :root[data-theme="dark"] .area-tab.active{ background:var(--yellow); color:#1F234F; }
   :root[data-theme="dark"] .area-tab .n{ background:rgba(201,204,255,.12); }
   :root[data-theme="dark"] .area-tab.active .n{ background:rgba(31,35,79,.15); }
@@ -364,6 +382,65 @@
   :root[data-theme="dark"] .activity-qty.in{ color:#3fd19f; }
   :root[data-theme="dark"] .activity-qty.out{ color:#ff6b62; }
   :root[data-theme="dark"] .legend-row .dot.ok{ background:#8C93F0; }
+
+  /* ---- pestañas de vista y análisis ---- */
+  .view-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:2px solid var(--line,#E3E3DD);}
+  .view-tab{border:none;background:transparent;font-family:inherit;font-size:15px;font-weight:800;color:var(--text-secondary);padding:10px 18px;border-radius:12px 12px 0 0;cursor:pointer;position:relative;top:2px;border-bottom:4px solid transparent;}
+  .view-tab.active{color:var(--navy);border-bottom-color:var(--yellow);}
+  :root[data-theme="dark"] .view-tab.active{color:#fff;}
+  .an-bar{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-bottom:14px;}
+  .an-seg{display:flex;gap:4px;background:#E7E7F3;padding:4px;border-radius:14px;}
+  .an-seg button{border:none;background:transparent;color:var(--navy);font-family:inherit;font-size:14px;font-weight:700;padding:8px 16px;border-radius:11px;cursor:pointer;}
+  .an-seg button.active{background:var(--navy);color:#fff;}
+  .an-nav{display:flex;align-items:center;gap:6px;}
+  .an-nav button,.an-btn{border:1.5px solid var(--navy);background:#fff;color:var(--navy);font-family:inherit;font-size:14px;font-weight:700;padding:8px 14px;border-radius:12px;cursor:pointer;}
+  .an-nav button:hover,.an-btn:hover{background:#EDEDF8;}
+  .an-nav .lbl{min-width:210px;text-align:center;font-weight:800;color:var(--navy);font-size:15px;}
+  .an-btn.solid{background:var(--navy);color:#fff;}
+  .an-btn.solid:hover{background:#1F234F;}
+  .an-btn:disabled{opacity:.5;cursor:wait;}
+  .an-spacer{flex:1;}
+  .an-msg{font-size:13px;font-weight:700;color:var(--navy);margin:0 0 10px;}
+  .an-aviso{background:#FFF7CC;border:1px solid #F0DC6B;color:#5B4B00;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;margin-bottom:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .an-aviso button{border:1.5px solid #5B4B00;background:transparent;color:#5B4B00;border-radius:10px;font-family:inherit;font-weight:700;padding:5px 12px;cursor:pointer;}
+  .an-slides{display:flex;flex-direction:column;gap:18px;align-items:center;}
+  .an-wrap{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(31,35,79,.15);}
+  .an-slide{position:absolute;left:0;top:0;transform-origin:0 0;}
+  [hidden]{display:none !important;}
+  /* historial de movimientos (filas desplegables) */
+  .hist-head,.hist-row{display:grid;grid-template-columns:92px 56px minmax(190px,1.5fr) minmax(130px,1fr) 70px minmax(90px,.9fr) 24px;gap:10px;align-items:center;}
+  .hist-head{padding:8px 12px;font-size:12px;font-weight:800;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--line,#E3E3DD);}
+  .hist-head .r,.hist-row .r{text-align:right;}
+  .hist-item{border-bottom:1px solid var(--line,#F2F2F9);}
+  .hist-row{width:100%;border:none;background:transparent;font-family:inherit;color:var(--text-primary);text-align:left;padding:12px;cursor:pointer;font-size:13.5px;}
+  .hist-row:hover{background:rgba(45,50,119,.05);}
+  .hist-row .mut{color:var(--text-secondary);}
+  .hist-row .qty{font-weight:800;font-variant-numeric:tabular-nums;font-size:15px;}
+  .hist-row .qty.in{color:#1FA37A;} .hist-row .qty.out{color:var(--danger);} .hist-row .qty.warn{color:var(--warn);}
+  .chip{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-right:6px;}
+  .chip.in{background:#E4F6EF;color:#16805F;} .chip.out{background:#FBE0DE;color:#B3261E;} .chip.warn{background:#FFF1D6;color:#9A6200;}
+  .caret{transition:transform .15s;color:var(--text-secondary);}
+  .hist-item.open .caret{transform:rotate(180deg);}
+  .hist-detail{background:var(--bg-page);padding:14px 18px 18px;border-top:1px solid var(--line,#E3E3DD);}
+  .hd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px 20px;}
+  .hd-f.full{grid-column:1/-1;}
+  .hd-l{font-size:12px;font-weight:800;color:var(--text-secondary);}
+  .hd-v{font-size:14px;font-weight:600;color:var(--text-primary);margin-top:2px;overflow-wrap:anywhere;}
+  .hist-more{display:block;margin:12px auto 6px;border:1.5px solid var(--navy);background:transparent;color:var(--navy);font-family:inherit;font-weight:700;font-size:13.5px;padding:8px 18px;border-radius:12px;cursor:pointer;}
+  .hist-more:hover{background:rgba(45,50,119,.08);}
+  :root[data-theme="dark"] .hist-more{color:#C9CCFF;border-color:#C9CCFF;}
+  :root[data-theme="dark"] .chip.in{background:#163a30;color:#3fd19f;} :root[data-theme="dark"] .chip.out{background:#3d1a20;color:#ff8a8a;} :root[data-theme="dark"] .chip.warn{background:#3a2f14;color:#F5C26B;}
+  @media (max-width:760px){
+    .hist-head{display:none;}
+    .hist-row{grid-template-columns:1fr auto;grid-template-areas:"mov qty" "epp caret" "fh an";row-gap:4px;}
+    .hist-row .hc:nth-child(1){grid-area:fh;font-size:12px;color:var(--text-secondary);}
+    .hist-row .hc:nth-child(2){display:none;}
+    .hist-row .hc:nth-child(3){grid-area:mov;font-weight:700;}
+    .hist-row .hc:nth-child(4){grid-area:epp;color:var(--text-secondary);}
+    .hist-row .hc:nth-child(5){grid-area:qty;}
+    .hist-row .hc:nth-child(6){grid-area:an;text-align:right;font-size:12px;}
+    .hist-row .hc:nth-child(7){grid-area:caret;text-align:right;}
+  }
 </style>
 </head>
 <body>
@@ -383,6 +460,12 @@
   </div>
 </div></header>
 <div class="wrap">
+
+  <nav class="view-tabs" aria-label="Vista">
+    <button class="view-tab active" data-v="inv" type="button">Inventario</button>
+    <button class="view-tab" data-v="an" type="button">Análisis EPP</button>
+  </nav>
+  <div id="view-inv">
 
   <div class="filters-row">
     <div class="area-tabs" id="area-tabs"></div>
@@ -409,9 +492,14 @@
       <div class="kpi-sub">0 piezas disponibles</div>
     </div>
     <div class="kpi-card alert">
-      <div class="kpi-label">Tallas con stock bajo</div>
+      <div class="kpi-label">Tallas en escasez</div>
       <div class="kpi-value alert" id="kpi-bajas">0</div>
-      <div class="kpi-sub">Menos de 5 piezas</div>
+      <div class="kpi-sub">Debajo del mínimo</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Tallas con sobreinventario</div>
+      <div class="kpi-value over" id="kpi-sobre">0</div>
+      <div class="kpi-sub">Arriba del máximo</div>
     </div>
   </section>
 
@@ -453,7 +541,8 @@
         <select id="inv-filter-estado">
           <option value="todos">Todos los estados</option>
           <option value="ok">Normal</option>
-          <option value="warn">Stock bajo</option>
+          <option value="warn">Escasez</option>
+          <option value="over">Sobreinventario</option>
           <option value="danger">Agotado</option>
         </select>
         <input type="text" id="inv-search" placeholder="Buscar SKU, talla o medida…">
@@ -481,7 +570,7 @@
   <!-- ACTIVIDAD RECIENTE -->
   <section class="activity-panel">
     <div class="category-header">
-      <div class="title"><span class="icon-badge">🕒</span> Actividad reciente</div>
+      <div class="title"><span class="icon-badge">🕒</span> Historial de movimientos</div>
       <div class="total-pill" id="activity-scope-pill">—</div>
     </div>
     <div class="activity-list" id="activity-list"></div>
@@ -489,8 +578,26 @@
 
   <div class="legend-row">
     <span><span class="dot ok"></span>Stock normal</span>
-    <span><span class="dot warn"></span>⚠️ Stock bajo (menos de 5 piezas)</span>
+    <span><span class="dot warn"></span>⚠️ Escasez (debajo del mínimo de la talla)</span>
+    <span><span class="dot over"></span>📦 Sobreinventario (arriba del máximo de la talla)</span>
     <span><span class="dot danger"></span>🔴 Agotado (0 piezas)</span>
+  </div>
+  </div><!-- /view-inv -->
+
+  <div id="view-an" hidden>
+    <div class="an-bar">
+      <div class="an-seg" id="an-periodos">
+        <button type="button" data-p="day">Día</button><button type="button" data-p="week">Semana</button><button type="button" data-p="month">Mes</button><button type="button" data-p="year">Año</button>
+      </div>
+      <div class="an-nav"><button type="button" id="an-prev" aria-label="Anterior">◀</button><span class="lbl" id="an-etiqueta">—</span><button type="button" id="an-next" aria-label="Siguiente">▶</button><button type="button" id="an-hoy">Hoy</button></div>
+      <div class="site-selector" style="margin:0"><label for="an-site">Site</label><select class="site-select" id="an-site"></select></div>
+      <span class="an-spacer"></span>
+      <button class="an-btn solid" id="an-pdf" type="button">⬇ Descargar PDF</button>
+      <button class="an-btn solid" id="an-pptx" type="button">⬇ Descargar PPTX</button>
+    </div>
+    <p class="an-msg" id="an-msg" hidden></p>
+    <div class="an-aviso" id="an-aviso" hidden><span>No hay movimientos en este periodo para el site elegido.</span><button type="button">Ir al último periodo con datos</button></div>
+    <div class="an-slides" id="an-slides"></div>
   </div>
 
 </div>
@@ -521,7 +628,27 @@ const CORRECTIONS = [
 
 const SHOE_ORDER = ["22","23","24","25","26","27","28","29","30","31","32","33"];
 const GLOVE_ORDER = ["5 (XSS)","6 (XS)","7 (S)","8 (M)","9 (L)","10 (XL)"];
-const LOW_STOCK_THRESHOLD = 5;
+const LOW_STOCK_THRESHOLD = 5; // solo para tallas/medidas fuera de lo esperado, sin mínimo y máximo definidos
+
+// Mínimo y máximo por talla de calzado: [mínimo, máximo].
+//   piezas < mínimo  -> ⚠️ Escasez       piezas > máximo -> 📦 Sobreinventario
+//   piezas = 0       -> 🔴 Agotado
+const SHOE_LIMITS = {
+  "22":[30,60],  "23":[40,70],  "24":[50,100], "25":[80,160],
+  "26":[80,150], "27":[60,140], "28":[70,120], "29":[30,30],
+  "30":[10,10],  "31":[5,5],    "32":[3,5],    "33":[3,5]
+};
+// Guantes: mismo rango para todas las medidas. Mínimo 50; el máximo (100) sale del promedio
+// de la relación máximo/mínimo de las tallas de calzado con rango real (22 a 28): ≈ 2 veces el mínimo.
+// Para dar un rango distinto a una medida, cámbialo aquí, por ejemplo: GLOVE_LIMITS["8 (M)"] = [40,90];
+const GLOVE_MIN = 50, GLOVE_MAX = 100;
+const GLOVE_LIMITS = Object.fromEntries(GLOVE_ORDER.map(m => [m, [GLOVE_MIN, GLOVE_MAX]]));
+
+function limitsFor(item){
+  const l = item.tipo === 'Calzado' ? SHOE_LIMITS[item.talla]
+          : (item.tipo === 'Guantes de seguridad' ? GLOVE_LIMITS[item.medida] : null);
+  return l ? { min:l[0], max:l[1] } : null;
+}
 let ANOMALIES = new Set();
 let charts = {};
 let CURRENT_TABLE_ITEMS = [];
@@ -637,7 +764,15 @@ function buildItemsFromCSV(text){
     // Columnas opcionales (si no existen en la hoja, idx = -1 y quedan vacías)
     proveedor: header.indexOf('Proveedor'),
     evidencia: header.indexOf('Evidencia'),
-    prestamoCon: header.indexOf('Préstamo con')
+    prestamoCon: header.indexOf('Préstamo con'),
+    colabNombre: header.indexOf('Nombre del colaborador'),
+    colabBadge: header.indexOf('Número de badge'),
+    colabMotivo: header.indexOf('Motivo del cambio'),
+    colabArea: header.indexOf('Área del colaborador'),
+    colabPuesto: header.indexOf('Puesto de trabajo'),
+    colabTurno: header.indexOf('Turno'),
+    colabMedico: header.indexOf('Personal médico que solicita'),
+    justificacion: header.indexOf('Justificación')
   };
   const optCol = (cols, i) => i >= 0 ? (cols[i]||'').trim() : '';
   // Movimientos de transferencia entre áreas (no son una entrada/salida real del inventario total,
@@ -662,6 +797,14 @@ function buildItemsFromCSV(text){
       proveedor: optCol(cols, idx.proveedor),
       evidencia: optCol(cols, idx.evidencia),
       prestamoCon: optCol(cols, idx.prestamoCon),
+      colabNombre: optCol(cols, idx.colabNombre),
+      colabBadge: optCol(cols, idx.colabBadge).replace(/^'/, ''),
+      colabMotivo: optCol(cols, idx.colabMotivo),
+      colabArea: optCol(cols, idx.colabArea),
+      colabPuesto: optCol(cols, idx.colabPuesto),
+      colabTurno: optCol(cols, idx.colabTurno),
+      colabMedico: optCol(cols, idx.colabMedico),
+      justificacion: optCol(cols, idx.justificacion),
       site: siteRaw || DEFAULT_SITE, // registros sin site capturado se asignan al site por defecto
       area: areaRaw || DEFAULT_AREA // registros sin área capturada se asignan al Cuarto de EPP
     };
@@ -720,10 +863,22 @@ function buildItemsFromCSV(text){
   return Array.from(map.values()).map(i=>({...i, piezas: Math.max(0, i.piezas)}));
 }
 
-function estadoFor(piezas){
-  if (piezas <= 0) return 'danger';
-  if (piezas < LOW_STOCK_THRESHOLD) return 'warn';
-  return 'ok';
+function estadoFor(item){
+  const p = item.piezas, lim = limitsFor(item);
+  if (p <= 0) return 'danger';
+  if (lim){
+    if (p < lim.min) return 'warn';
+    if (p > lim.max) return 'over';
+    return 'ok';
+  }
+  return p < LOW_STOCK_THRESHOLD ? 'warn' : 'ok';
+}
+function estadoLabel(e){
+  return e==='danger' ? 'Agotado' : (e==='warn' ? 'Escasez' : (e==='over' ? 'Sobreinventario' : 'Normal'));
+}
+function rangoTexto(item){
+  const l = limitsFor(item);
+  return l ? `Mín ${l.min} · Máx ${l.max}` : '';
 }
 
 function labelFor(item){ return item.talla !== 'N/A' ? item.talla : item.medida; }
@@ -751,16 +906,18 @@ function renderGrid(containerId, items, order){
   const normal = sorted.filter(i=>order.includes(labelFor(i)));
   const anómalos = items.filter(i=>!order.includes(labelFor(i)));
   [...normal, ...anómalos].forEach(item=>{
-    const estado = estadoFor(item.piezas);
+    const estado = estadoFor(item);
     const div = document.createElement('div');
     div.className = `size-tile ${estado !== 'ok' ? estado : ''}`;
     const isAnomaly = ANOMALIES.has(item.key);
+    const rango = rangoTexto(item);
     div.innerHTML = `
       ${isAnomaly ? `<span class="anom" title="Formato inusual: revisar captura original">✳️</span>` : ''}
-      ${estado==='danger' ? '<span class="flag">🔴</span>' : (estado==='warn' ? '<span class="flag">⚠️</span>' : '')}
+      ${estado==='danger' ? '<span class="flag">🔴</span>' : (estado==='warn' ? '<span class="flag">⚠️</span>' : (estado==='over' ? '<span class="flag">📦</span>' : ''))}
       <div class="talla">Talla ${labelFor(item)}</div>
       <div class="piezas">${item.piezas}</div>
-      <div class="estado">${estado==='danger' ? 'Agotado' : (estado==='warn' ? 'Stock bajo' : '')}</div>
+      <div class="estado">${estado==='ok' ? '' : estadoLabel(estado)}</div>
+      ${rango ? `<div class="rango">${rango}</div>` : ''}
     `;
     container.appendChild(div);
   });
@@ -781,8 +938,8 @@ function renderChart(canvasId, items, order, color){
         label:'Piezas',
         data: all.map(i=>i.piezas),
         backgroundColor: all.map(i=>{
-          const e = estadoFor(i.piezas);
-          return e==='danger' ? '#E1332B' : (e==='warn' ? '#F5A623' : (eppDark() ? '#8C93F0' : color));
+          const e = estadoFor(i);
+          return e==='danger' ? '#E1332B' : (e==='warn' ? '#F5A623' : (e==='over' ? '#2F6FDB' : (eppDark() ? '#8C93F0' : color)));
         }),
         borderRadius:6
       }]
@@ -812,9 +969,11 @@ function renderAll(items){
   document.getElementById('guantes-total-pill').textContent = `${totalGuantes.toLocaleString()} piezas`;
 
   const agotadas = items.filter(i=>i.piezas<=0).length;
-  const bajas = items.filter(i=>i.piezas>0 && i.piezas<LOW_STOCK_THRESHOLD).length;
+  const bajas = items.filter(i=>estadoFor(i)==='warn').length;
+  const sobre = items.filter(i=>estadoFor(i)==='over').length;
   document.getElementById('kpi-agotadas').textContent = agotadas;
   document.getElementById('kpi-bajas').textContent = bajas;
+  document.getElementById('kpi-sobre').textContent = sobre;
 
   renderGrid('grid-calzado', calzado, SHOE_ORDER);
   renderGrid('grid-guantes', guantes, GLOVE_ORDER);
@@ -845,7 +1004,7 @@ function renderInventoryTable(items){
     ? all.filter(i=> i.tipo.toLowerCase().includes(term) || labelFor(i).toLowerCase().includes(term) || skuFor(i).toLowerCase().includes(term))
     : all;
   if (estadoFiltro !== 'todos'){
-    filtered = filtered.filter(i=> estadoFor(i.piezas) === estadoFiltro);
+    filtered = filtered.filter(i=> estadoFor(i) === estadoFiltro);
   }
 
   const tbody = document.getElementById('inv-table-body');
@@ -863,10 +1022,12 @@ function renderInventoryTable(items){
   empty.style.display = 'none';
 
   filtered.forEach(item=>{
-    const estado = estadoFor(item.piezas);
-    const max = item.tipo === 'Calzado' ? maxCalzado : maxGuantes;
-    const pct = Math.max(item.piezas>0 ? 6 : 0, Math.round((Math.max(item.piezas,0) / max) * 100));
-    const estadoLabel = estado==='danger' ? 'Agotado' : (estado==='warn' ? 'Stock bajo' : 'Normal');
+    const estado = estadoFor(item);
+    const lim = limitsFor(item);
+    // con límites definidos la barra mide qué tan lleno está contra el máximo de esa talla
+    const max = lim ? lim.max : (item.tipo === 'Calzado' ? maxCalzado : maxGuantes);
+    const pct = Math.min(100, Math.max(item.piezas>0 ? 6 : 0, Math.round((Math.max(item.piezas,0) / max) * 100)));
+    const rango = rangoTexto(item);
     const isAnomaly = ANOMALIES.has(item.key);
     const catClass = item.tipo === 'Calzado' ? '' : 'guantes';
     const tr = document.createElement('tr');
@@ -880,7 +1041,7 @@ function renderInventoryTable(items){
           <div class="track"><div class="fill" style="width:${pct}%;"></div></div>
         </div>
       </td>
-      <td><span class="inv-badge ${estado!=='ok'?estado:''}">${estadoLabel}</span></td>
+      <td><span class="inv-badge ${estado!=='ok'?estado:''}"${rango ? ` title="${rango}"` : ''}>${estadoLabel(estado)}</span>${rango ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:3px">${rango}</div>` : ''}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -890,61 +1051,106 @@ function escHtml(t){
   return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+let HIST_LIMIT = 10;
+const HIST_OPEN = new Set();   // ids de movimientos desplegados (se conservan al actualizar)
+function movId(m){ let h = 5381; const t = [m.marca,m.movimiento,m.tipo,m.talla,m.medida,m.site,m.area,m.piezas].join('|'); for (let i=0;i<t.length;i++) h = ((h<<5)+h+t.charCodeAt(i))|0; return (h>>>0).toString(16).padStart(8,'0'); }
+function movCategoria(m){
+  const mv = m.movimiento || '';
+  if (/^salida de epp por entrega a almac/i.test(mv)) return 'Transferencia a Almacén';
+  if (/^entrada de epp por regreso de almac/i.test(mv)) return 'Regreso de Almacén';
+  if (/entrega a (colaborador|rep)/i.test(mv)) return 'Entrega a colaborador';
+  if (/pr[eé]stamo/i.test(mv)) return m.piezas<0 ? 'Préstamo a otro site' : 'Préstamo recibido';
+  if (/^entrada de epp por proveedor/i.test(mv)) return 'Compra a proveedor';
+  if (/baja|desech|deshech/i.test(mv)) return 'Baja / desecho';
+  if (/^entrada al inventario|^salida del inventario|ajuste/i.test(mv)) return 'Ajuste de inventario';
+  return m.piezas<0 ? 'Salida de EPP' : 'Entrada de EPP';
+}
+function fechaHora(marca){
+  const d = parseMarca(marca); if (!d) return [marca||'—',''];
+  return [`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`, `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`];
+}
+function campo(lab, val, full){ return val ? `<div class="hd-f${full?' full':''}"><div class="hd-l">${escHtml(lab)}</div><div class="hd-v">${val}</div></div>` : ''; }
+
 function renderActivityFeed(){
   const scope = ALL_MOVEMENTS.filter(m => m.site === currentSite && m.area === currentArea);
   const sorted = [...scope].sort((a,b)=>{
     const da = parseMarca(a.marca), db = parseMarca(b.marca);
     if (!da || !db) return 0;
     return db - da;
-  }).slice(0, 8);
+  });
+  const shown = sorted.slice(0, HIST_LIMIT);
 
-  document.getElementById('activity-scope-pill').textContent = `${currentSite} · ${currentArea}`;
+  document.getElementById('activity-scope-pill').textContent = `${currentSite} · ${currentArea} · ${sorted.length} movimientos`;
   const list = document.getElementById('activity-list');
   list.innerHTML = '';
-
   if (!sorted.length){
     list.innerHTML = '<div class="activity-empty">Sin movimientos registrados en este site/área todavía.</div>';
     return;
   }
+  const head = document.createElement('div');
+  head.className = 'hist-head';
+  head.innerHTML = '<span>Fecha</span><span>Hora</span><span>Movimiento</span><span>EPP</span><span class="r">Piezas</span><span>Analista</span><span></span>';
+  list.appendChild(head);
 
-  sorted.forEach(m=>{
-    if (m.invalido){
-      const row = document.createElement('div');
-      row.className = 'activity-row';
-      row.innerHTML = `
-        <div class="activity-icon warn">⚠️</div>
-        <div class="activity-main">
-          <div class="line1">Captura inválida — ${m.tipo}</div>
-          <div class="line2">Talla "${m.talla}" y Medida "${m.medida}" llenas a la vez, no se contó en el inventario · ${m.marca}${m.analista ? ' · ' + m.analista : ''}</div>
-        </div>
-        <div class="activity-qty warn">Revisar</div>
-      `;
-      list.appendChild(row);
-      return;
-    }
-    const isSalida = m.piezas < 0;
+  shown.forEach(m=>{
+    const id = movId(m), abierto = HIST_OPEN.has(id);
+    const [f,h] = fechaHora(m.marca);
+    const isSalida = m.piezas < 0, inval = !!m.invalido;
     const label = m.talla !== 'N/A' ? m.talla : m.medida;
-    // Detalle extra: préstamo entre sites, proveedor y link a la evidencia (texto escapado: viene de la hoja)
-    const esPrestamo = /pr[eé]stamo/i.test(m.movimiento);
-    let detalle = '';
-    if (esPrestamo) detalle = m.prestamoCon
-      ? (isSalida ? ` · 🤝 Préstamo a ${escHtml(m.prestamoCon)}` : ` · 🤝 Préstamo de ${escHtml(m.prestamoCon)}`)
-      : ' · 🤝 Préstamo entre sites';
-    else if (m.proveedor) detalle = ` · 🧾 Proveedor: ${escHtml(m.proveedor)}`;
-    const linkEv = /^https:\/\//i.test(m.evidencia)
-      ? ` · <a href="${escHtml(m.evidencia)}" target="_blank" rel="noopener noreferrer" style="color:#3483FA;font-weight:700;text-decoration:none">📎 Evidencia</a>` : '';
+    const cat = inval ? 'Captura inválida' : movCategoria(m);
     const row = document.createElement('div');
-    row.className = 'activity-row';
+    row.className = 'hist-item' + (abierto ? ' open' : '');
+    const linkEv = /^https:\/\//i.test(m.evidencia)
+      ? `<a href="${escHtml(m.evidencia)}" target="_blank" rel="noopener noreferrer" style="color:#3483FA;font-weight:700;text-decoration:none">📎 Abrir evidencia</a>` : '';
+    const colab = m.colabNombre ? escHtml(m.colabNombre) + (m.colabBadge ? ` · badge ${escHtml(m.colabBadge)}` : '') : '';
+    const aviso = inval ? `Talla "${escHtml(m.talla)}" y Medida "${escHtml(m.medida)}" llenas a la vez: no se contó en el inventario (se intentaron ${m.piezasIntentadas} pzas).` : '';
     row.innerHTML = `
-      <div class="activity-icon ${isSalida ? 'out':'in'}">${isSalida ? '↓' : '↑'}</div>
-      <div class="activity-main">
-        <div class="line1">${m.tipo} · ${label}</div>
-        <div class="line2">${m.marca}${m.analista ? ' · ' + escHtml(m.analista) : ''}${detalle}${linkEv}</div>
-      </div>
-      <div class="activity-qty ${isSalida ? 'out':'in'}">${isSalida ? '' : '+'}${m.piezas}</div>
-    `;
+      <button type="button" class="hist-row" aria-expanded="${abierto}">
+        <span class="hc">${f}</span><span class="hc">${h}</span>
+        <span class="hc"><span class="chip ${inval?'warn':(isSalida?'out':'in')}">${inval?'⚠ Revisar':(isSalida?'↓ Salida':'↑ Entrada')}</span> ${escHtml(cat)}</span>
+        <span class="hc">${escHtml(m.tipo)} · ${escHtml(label)}</span>
+        <span class="hc r qty ${inval?'warn':(isSalida?'out':'in')}">${inval?'—':(isSalida?'':'+')+m.piezas}</span>
+        <span class="hc mut">${escHtml(m.analista || '—')}</span>
+        <span class="hc caret" aria-hidden="true">▾</span>
+      </button>
+      <div class="hist-detail"${abierto?'':' hidden'}>
+        <div class="hd-grid">
+          ${campo('ID', id)}
+          ${campo('Fecha y hora', `${f} ${h}`)}
+          ${campo('Site', escHtml(m.site))}
+          ${campo('Ubicación del EPP', escHtml(m.area))}
+          ${campo('Tipo de EPP', escHtml(m.tipo))}
+          ${campo('Talla / medida', escHtml(label))}
+          ${campo('Piezas', inval ? '—' : `${isSalida?'−':'+'}${Math.abs(m.piezas)}`)}
+          ${campo('Registrado por', escHtml(m.analista))}
+          ${campo('Proveedor', escHtml(m.proveedor))}
+          ${campo('Préstamo con', escHtml(m.prestamoCon))}
+          ${campo('Colaborador', colab)}
+          ${campo('Motivo del cambio', escHtml(m.colabMotivo))}
+          ${campo('Área del colaborador', escHtml(m.colabArea))}
+          ${campo('Puesto de trabajo', escHtml(m.colabPuesto))}
+          ${campo('Turno', escHtml(m.colabTurno))}
+          ${campo('Personal médico que solicita', escHtml(m.colabMedico))}
+          ${campo('Tipo de movimiento (como quedó en la hoja)', escHtml(m.movimiento), true)}
+          ${campo('Justificación', escHtml(m.justificacion), true)}
+          ${campo('Aviso', aviso, true)}
+          ${campo('Evidencia', linkEv, true)}
+        </div>
+      </div>`;
+    const btn = row.querySelector('.hist-row'), det = row.querySelector('.hist-detail');
+    btn.addEventListener('click', ()=>{
+      const on = det.hidden; det.hidden = !on; row.classList.toggle('open', on); btn.setAttribute('aria-expanded', on);
+      if (on) HIST_OPEN.add(id); else HIST_OPEN.delete(id);
+    });
     list.appendChild(row);
   });
+  if (sorted.length > shown.length){
+    const more = document.createElement('button');
+    more.type = 'button'; more.className = 'hist-more';
+    more.textContent = `Ver más movimientos (${sorted.length - shown.length} restantes)`;
+    more.addEventListener('click', ()=>{ HIST_LIMIT += 20; renderActivityFeed(); });
+    list.appendChild(more);
+  }
 }
 
 function setLiveBanner(state, text){
@@ -985,6 +1191,7 @@ async function loadData(isManual){
     ALL_ITEMS = buildItemsFromCSV(text);
     renderAreaTabs();
     renderAll(filterCurrent(ALL_ITEMS));
+    if (typeof renderAnalisis === 'function') renderAnalisis();
     const now = new Date();
     const hora = now.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
     setLiveBanner('ok', `En vivo · última actualización ${hora}`);
@@ -1013,6 +1220,525 @@ document.getElementById('refresh-btn').addEventListener('click', ()=>loadData(tr
 loadData(false);
 setInterval(()=>loadData(false), AUTO_REFRESH_MS);
 new MutationObserver(()=>{ if (ALL_ITEMS.length) renderAll(filterCurrent(ALL_ITEMS)); }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>
+<script>
+/* =====================================================================
+   ANÁLISIS EPP — pestaña de análisis a nivel site / todos los sites
+   Las diapositivas se describen UNA sola vez como figuras (rectángulos y
+   textos en una hoja de 1280×720). Con esa misma descripción se dibuja en
+   pantalla, se genera el PDF y se genera el PPTX (editable).
+   ===================================================================== */
+(function(){
+'use strict';
+const C = { navy:'#2D3277', yel:'#FFE600', bg:'#F2F1ED', card:'#FFFFFF', blue:'#3483FA', ora:'#FF7A2F',
+            ink:'#1F234F', mut:'#6B6F8D', line:'#E3E3DD', track:'#EDEDE8', soft:'#C9CBE0', red:'#E1332B', amber:'#F5A623', over:'#2F6FDB' };
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const MES3 = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const DIA3 = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const TURNOS_ORD = ['Turno 1A','Turno 1B','Turno 2A','Turno 2B','Turno 3A','Turno 3B','Turno 4','Turno 5'];
+const MOTIVOS_ORD = ['Nuevo ingreso','Cambio por desgaste (1 año de uso)','Cambio por daño (menos de 1 año)','Reposición','Evaluación médica'];
+const FONT = "'Nunito Sans', Arial, sans-serif";
+const PERIODOS = { day:'Día', week:'Semana', month:'Mes', year:'Año' };
+
+const state = { period:'month', anchor:new Date(), site:'ALL', jumped:false, slides:[], info:null };
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('es-MX');
+const pad = n => String(n).padStart(2,'0');
+const cut = (s,n) => { s = String(s); return s.length>n ? s.slice(0,n-1)+'…' : s; };
+const sortDesc = m => Array.from(m.entries()).sort((a,b)=>b[1]-a[1]);
+
+/* ---------------- periodo ---------------- */
+function rango(){
+  const a = state.anchor, d = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+  if (state.period==='day') return [d, new Date(d.getFullYear(), d.getMonth(), d.getDate()+1)];
+  if (state.period==='week'){ const lun = new Date(d.getFullYear(), d.getMonth(), d.getDate()-((d.getDay()+6)%7)); return [lun, new Date(lun.getFullYear(), lun.getMonth(), lun.getDate()+7)]; }
+  if (state.period==='month') return [new Date(d.getFullYear(), d.getMonth(), 1), new Date(d.getFullYear(), d.getMonth()+1, 1)];
+  return [new Date(d.getFullYear(),0,1), new Date(d.getFullYear()+1,0,1)];
+}
+function etiquetaPeriodo(){
+  const [s,e] = rango(), f = new Date(e.getFullYear(), e.getMonth(), e.getDate()-1);
+  if (state.period==='day') return `${DIA3[(s.getDay()+6)%7]} ${s.getDate()} de ${MESES[s.getMonth()]} de ${s.getFullYear()}`;
+  if (state.period==='week') return s.getMonth()===f.getMonth()
+      ? `Semana del ${s.getDate()} al ${f.getDate()} de ${MESES[f.getMonth()]} de ${f.getFullYear()}`
+      : `Semana del ${s.getDate()} de ${MES3[s.getMonth()].toLowerCase()} al ${f.getDate()} de ${MES3[f.getMonth()].toLowerCase()} de ${f.getFullYear()}`;
+  if (state.period==='month') return `${MESES[s.getMonth()][0].toUpperCase()+MESES[s.getMonth()].slice(1)} de ${s.getFullYear()}`;
+  return `Año ${s.getFullYear()}`;
+}
+function mover(n){
+  const a = state.anchor;
+  if (state.period==='day') state.anchor = new Date(a.getFullYear(), a.getMonth(), a.getDate()+n);
+  else if (state.period==='week') state.anchor = new Date(a.getFullYear(), a.getMonth(), a.getDate()+7*n);
+  else if (state.period==='month') state.anchor = new Date(a.getFullYear(), a.getMonth()+n, 1);
+  else state.anchor = new Date(a.getFullYear()+n, 0, 1);
+}
+
+/* ---------------- clasificación de movimientos ---------------- */
+const TR_OUT = /^salida de epp por entrega a almac/i, TR_IN = /^entrada de epp por regreso de almac/i;
+function cat(r){
+  const mv = r.movimiento || '';
+  if (TR_OUT.test(mv) || TR_IN.test(mv)) return 'transfer';
+  if (/entrega a (colaborador|rep)/i.test(mv)) return 'entrega';
+  if (/pr[eé]stamo/i.test(mv)) return r.piezas<0 ? 'prestamoOut' : 'prestamoIn';
+  if (/^entrada de epp por proveedor/i.test(mv)) return 'proveedor';
+  if (/baja|desech|deshech/i.test(mv)) return 'baja';
+  if (/ajuste|^entrada al inventario|^salida del inventario/i.test(mv)) return r.piezas<0 ? 'ajusteOut' : 'ajusteIn';
+  return r.piezas<0 ? 'salidaOtra' : 'entradaOtra';
+}
+const norm = (s,v) => String(s||'').trim() || v;
+const areaKey = s => { s = norm(s,'Sin dato'); return /^otros?\s*:/i.test(s) ? 'Otros' : s; };
+const puestoKey = s => { s = norm(s,'Sin dato'); return /^otros?\s*:/i.test(s) ? 'Otro' : s; };
+const motivoKey = s => norm(s,'Sin dato (registro anterior)');
+function shortMotivo(m){
+  if (/^nuevo ingreso/i.test(m)) return 'Nuevo ingreso';
+  if (/desgaste/i.test(m)) return 'Desgaste (1 año)';
+  if (/da[nñ]o/i.test(m)) return 'Daño (<1 año)';
+  if (/^reposici/i.test(m)) return 'Reposición';
+  if (/m[eé]dica/i.test(m)) return 'Eval. médica';
+  if (/^sin dato/i.test(m)) return 'Sin dato';
+  return cut(m,16);
+}
+const addSet = (map,k,v) => { if(!map.has(k)) map.set(k,new Set()); map.get(k).add(v); };
+const addNum = (map,k,v) => map.set(k,(map.get(k)||0)+v);
+const talla = r => r.talla!=='N/A' ? r.talla : r.medida;
+
+/* ---------------- agregación ---------------- */
+function agg(rows){
+  const a = { rec:0, ent:0, bajas:0, prestOut:0, prestIn:0, ajIn:0, ajOut:0, transfer:0, n:{},
+              prov:new Map(), recTipo:{Calzado:0, Guantes:0}, entTipo:{Calzado:0, Guantes:0}, tallasEnt:new Map(),
+              motivo:new Map(), area:new Map(), puesto:new Map(), turno:new Map(), matriz:new Map(), cols:new Set() };
+  rows.forEach(({r,c,q,i})=>{
+    a.n[c] = (a.n[c]||0)+1;
+    const tipo = r.tipo==='Calzado' ? 'Calzado' : 'Guantes';
+    if (c==='proveedor' || c==='entradaOtra'){ a.rec+=q; a.recTipo[tipo]+=q; if (c==='proveedor') addNum(a.prov, norm(r.proveedor,'Sin nombre'), q); }
+    else if (c==='entrega'){
+      a.ent+=q; a.entTipo[tipo]+=q; addNum(a.tallasEnt, (tipo==='Calzado'?'Calzado ':'Guante ')+talla(r), q);
+      const k = String(r.colabBadge||r.colabNombre||('r'+i)).toLowerCase();
+      a.cols.add(k);
+      const mo = motivoKey(r.colabMotivo), ar = areaKey(r.colabArea);
+      addSet(a.motivo, mo, k); addSet(a.area, ar, k); addSet(a.puesto, puestoKey(r.colabPuesto), k); addSet(a.turno, norm(r.colabTurno,'Sin dato'), k);
+      if (!a.matriz.has(ar)) a.matriz.set(ar,new Map()); addSet(a.matriz.get(ar), mo, k);
+    }
+    else if (c==='baja') a.bajas+=q;
+    else if (c==='prestamoOut') a.prestOut+=q;
+    else if (c==='prestamoIn') a.prestIn+=q;
+    else if (c==='ajusteIn') a.ajIn+=q;
+    else if (c==='ajusteOut') a.ajOut+=q;
+    else if (c==='transfer') a.transfer+=q;
+  });
+  return a;
+}
+const cnt = m => new Map(Array.from(m.entries()).map(([k,v])=>[k,v.size]));
+
+function compute(){
+  const [start,end] = rango();
+  const sites = state.site==='ALL' ? SITES.slice() : [state.site];
+  const todos = [];
+  ALL_MOVEMENTS.forEach((r,i)=>{
+    if (r.invalido || !sites.includes(r.site)) return;
+    const d = parseMarca(r.marca); if (!d) return;
+    const q = Math.abs(r.piezas); if (!q) return;
+    const c = cat(r);
+    if (c==='transfer' && r.piezas>0) return;           // una transferencia genera 2 filas: se cuenta una sola
+    todos.push({ r, d, c, q, i });
+  });
+  const rows = todos.filter(x=>x.d>=start && x.d<end);
+  const a = agg(rows);
+  // columnas de tiempo
+  let buckets = [];
+  if (state.period==='day') buckets = Array.from({length:12},(_,k)=>({label:`${k*2}-${k*2+2}`}));
+  else if (state.period==='week') buckets = DIA3.map(l=>({label:l}));
+  else if (state.period==='month'){ const n = Math.round((end-start)/864e5); buckets = Array.from({length:n},(_,k)=>({label:String(k+1)})); }
+  else buckets = MES3.map(l=>({label:l}));
+  buckets.forEach(b=>{ b.rec=0; b.ent=0; b.oth=0; });
+  rows.forEach(({d,c,q})=>{
+    const k = state.period==='day' ? Math.floor(d.getHours()/2) : state.period==='week' ? (d.getDay()+6)%7 : state.period==='month' ? d.getDate()-1 : d.getMonth();
+    const b = buckets[k]; if (!b) return;
+    if (c==='proveedor'||c==='entradaOtra') b.rec+=q; else if (c==='entrega') b.ent+=q;
+    else if (c==='baja'||c==='prestamoOut'||c==='salidaOtra') b.oth+=q;
+  });
+  // por site (comparativo)
+  const porSite = sites.map(s=>({ site:s, a:agg(rows.filter(x=>x.r.site===s)) }));
+  // inventario al corte (no depende del periodo)
+  const items = ALL_ITEMS.filter(i=>sites.includes(i.site));
+  const cuarto = items.filter(i=>i.area==='Cuarto de EPP'), alm = items.filter(i=>i.area==='Almacén');
+  const sum = (arr,t) => arr.filter(i=>i.tipo===t).reduce((s,i)=>s+i.piezas,0);
+  const alertas = cuarto.filter(i=>estadoFor(i)!=='ok').map(i=>({ site:i.site, item:i, e:estadoFor(i) }))
+      .sort((x,y)=>({danger:0,warn:1,over:2}[x.e]-{danger:0,warn:1,over:2}[y.e]) || x.site.localeCompare(y.site));
+  const stock = { cCal:sum(cuarto,'Calzado'), cGua:sum(cuarto,'Guantes de seguridad'), aCal:sum(alm,'Calzado'), aGua:sum(alm,'Guantes de seguridad'),
+                  agot:cuarto.filter(i=>estadoFor(i)==='danger').length, esc:cuarto.filter(i=>estadoFor(i)==='warn').length, sobre:cuarto.filter(i=>estadoFor(i)==='over').length, alertas, cuarto };
+  const porSiteStock = sites.map(s=>{ const it = cuarto.filter(i=>i.site===s);
+    return { site:s, cal:sum(it,'Calzado'), gua:sum(it,'Guantes de seguridad'), alert:it.filter(i=>estadoFor(i)!=='ok').length }; });
+  return { start, end, sites, rows, a, buckets, porSite, stock, porSiteStock, ultimo: todos.length ? todos.reduce((m,x)=>x.d>m?x.d:m, todos[0].d) : null, total: todos.length };
+}
+
+/* ---------------- figuras ---------------- */
+const R = (x,y,w,h,fill,o={}) => ({ t:'r', x,y,w,h, fill, ...o });
+const T = (x,y,w,h,text,o={}) => ({ t:'t', x,y,w,h, text:String(text), size:16, color:C.ink, bold:false, align:'left', valign:'top', ...o });
+const card = (x,y,w,h) => R(x,y,w,h,C.card,{ r:18, line:C.line });
+
+function frame(title, sub, pageNo, info){
+  const els = [ R(0,0,1280,720,C.bg), R(0,0,1280,116,C.yel),
+    T(40,20,850,46,title,{ size:34, bold:true, color:C.navy, valign:'middle' }),
+    T(40,70,860,30,sub,{ size:15, color:C.navy, valign:'middle' }),
+    R(980,34,128,30,'#FFFFFF',{ r:15, line:C.navy }), T(980,34,128,30,info.sitePill,{ size:12, bold:true, color:C.navy, align:'center', valign:'middle' }),
+    R(1118,34,122,30,C.navy,{ r:15 }), T(1118,34,122,30,'Corte '+info.corte,{ size:12, bold:true, color:'#FFFFFF', align:'center', valign:'middle' }),
+    T(40,696,900,18,'Safety Health Environment (SHE) · Análisis de EPP',{ size:11, color:C.mut, valign:'middle' }),
+    T(1140,696,100,18,String(pageNo),{ size:11, color:C.mut, align:'right', valign:'middle' }) ];
+  return els;
+}
+function kpi(x,y,w,h,num,label,o={}){
+  return [ card(x,y,w,h), T(x+22,y+10,w-44,h*0.52,num,{ size:o.size||44, bold:true, color:o.color||C.navy, valign:'middle' }),
+           T(x+22,y+h*0.58,w-44,h*0.38,label,{ size:14, color:C.mut }) ];
+}
+function titulo(x,y,w,text,sub){
+  const e = [ T(x,y,w,26,text,{ size:19, bold:true, color:C.navy, valign:'middle' }) ];
+  if (sub) e.push(T(x,y+28,w,18,sub,{ size:12, color:C.mut, valign:'middle' }));
+  return e;
+}
+function hbars(x,y,w,rows,o={}){
+  const rh = o.rowH||40, lw = o.labelW||150, vw = 60, bw = w-lw-vw-10; const max = Math.max(1,...rows.map(r=>r[1])), els = [];
+  rows.forEach(([lab,v],k)=>{
+    const yy = y+k*rh;
+    els.push(T(x,yy,lw,rh,cut(lab,o.cut||22),{ size:14, color:C.ink, valign:'middle' }));
+    els.push(R(x+lw,yy+rh/2-9,bw,18,C.track,{ r:9 }));
+    if (v>0) els.push(R(x+lw,yy+rh/2-9,Math.max(18,bw*v/max),18, (k===0&&o.hl!==false)?C.navy:(o.color||C.blue),{ r:9 }));
+    els.push(T(x+lw+bw+8,yy,vw,rh,fmt(v),{ size:15, bold:true, color:C.navy, align:'right', valign:'middle' }));
+  });
+  return els;
+}
+function vbars(x,y,w,h,items,o={}){
+  const els = [], n = Math.max(1,items.length), slot = w/n, bw = Math.min(46, slot*0.62), base = y+h-24, top = y+22;
+  const max = Math.max(1,...items.map(i=>i.v));
+  items.forEach((it,k)=>{
+    const bh = it.v>0 ? Math.max(4,(base-top)*it.v/max) : 0, bx = x+k*slot+(slot-bw)/2;
+    if (bh) els.push(R(bx,base-bh,bw,bh,it.color||C.blue,{ r:Math.min(8,bw/2) }));
+    els.push(T(x+k*slot-6,base-bh-22,slot+12,20,fmt(it.v),{ size:o.vsize||13, bold:true, color:C.navy, align:'center', valign:'middle' }));
+    if (!o.skipLabel || !o.skipLabel(k)) els.push(T(x+k*slot-8,base+4,slot+16,18,it.label,{ size:o.lsize||12, color:C.mut, align:'center', valign:'middle' }));
+  });
+  els.push(R(x,base,w,1,C.line));
+  return els;
+}
+function stacked(x,y,w,h,buckets,series){
+  const els = [], n = buckets.length, slot = w/n, bw = Math.min(40, slot*0.64), base = y+h-24, top = y+26;
+  const tot = buckets.map(b=>series.reduce((s,k)=>s+b[k.key],0)), max = Math.max(1,...tot);
+  buckets.forEach((b,k)=>{
+    const bx = x+k*slot+(slot-bw)/2; let cy = base;
+    series.forEach(s=>{
+      const v = b[s.key]; if (!v) return;
+      const sh = Math.max(3,(base-top)*v/max); cy -= sh;
+      els.push(R(bx,cy,bw,sh,s.color,{ r:3 }));
+      if (sh>=17 && bw>=24) els.push(T(bx,cy,bw,sh,fmt(v),{ size:11, bold:true, color:'#FFFFFF', align:'center', valign:'middle' }));
+    });
+    if (tot[k]) els.push(T(x+k*slot-6,cy-21,slot+12,19,fmt(tot[k]),{ size:12, bold:true, color:C.navy, align:'center', valign:'middle' }));
+    const skip = n>16 && k%2===1;
+    if (!skip) els.push(T(x+k*slot-8,base+4,slot+16,18,b.label,{ size:11, color:C.mut, align:'center', valign:'middle' }));
+  });
+  els.push(R(x,base,w,1,C.line));
+  return els;
+}
+function leyenda(x,y,items){
+  const els = []; let cx = x;
+  items.forEach(([lab,col])=>{ els.push(R(cx,y+5,10,10,col,{ r:5 })); const w = lab.length*7.2+10; els.push(T(cx+15,y,w,20,lab,{ size:12, color:C.mut, valign:'middle' })); cx += 15+w+14; });
+  return els;
+}
+function callout(x,y,w,h,q,title,body){
+  return [ card(x,y,w,h), R(x,y+14,6,h-28,C.ora,{ r:3 }), T(x+24,y+12,w-44,18,q,{ size:12, color:C.mut, valign:'middle' }),
+           T(x+24,y+32,w-44,30,title,{ size:21, bold:true, color:C.navy, valign:'middle' }), T(x+24,y+66,w-44,h-72,body,{ size:13.5, color:C.ink }) ];
+}
+function destacado(x,y,w,h,texto){
+  return [ R(x,y,w,h,C.navy,{ r:18 }), T(x+26,y+12,w-52,24,'Lo más importante',{ size:17, bold:true, color:C.yel, valign:'middle' }), T(x+26,y+40,w-52,h-48,texto,{ size:14.5, color:'#FFFFFF' }) ];
+}
+function mezcla(t){ // 0..1 entre gris claro y navy
+  const a=[237,237,232], b=[45,50,119]; return '#'+a.map((v,i)=>Math.round(v+(b[i]-v)*t).toString(16).padStart(2,'0')).join('');
+}
+
+/* ---------------- textos de análisis ---------------- */
+const top1 = m => { const s = sortDesc(m); return s.length ? s[0] : null; };
+const plural = (n,s,p) => n===1 ? s : p;
+function alcance(){ return state.site==='ALL' ? 'los 4 sites' : state.site; }
+
+function slideResumen(D,info){
+  const a = D.a, N = a.cols.size, mc = cnt(a.motivo), tm = top1(mc), pct = tm && N ? Math.round(100*tm[1]/N) : 0;
+  const els = frame('Análisis de EPP · '+(state.site==='ALL'?'Todos los sites':state.site), `${etiquetaPeriodo()} · ${fmt(D.rows.length)} movimientos registrados`, 1, info);
+  els.push(...kpi(40,132,290,108,fmt(a.rec),'piezas recibidas'));
+  els.push(...kpi(344,132,290,108,fmt(a.ent),`piezas entregadas a ${fmt(N)} ${plural(N,'colaborador','colaboradores')}`));
+  els.push(card(648,132,330,108), T(668,138,140,96,N?pct+'%':'—',{ size:46, bold:true, color:C.ora, valign:'middle' }),
+           T(800,140,166,92,tm?`de los colaboradores recibieron EPP por ${shortMotivo(tm[0]).toLowerCase()}`:'sin entregas en este periodo',{ size:13.5, color:C.ink, valign:'middle' }));
+  els.push(...kpi(992,132,248,108,fmt(a.bajas),'piezas dadas de baja'));
+  // tiempo
+  els.push(card(40,254,740,300), ...titulo(62,264,420,'Movimientos de EPP en el tiempo','Piezas por '+({day:'bloque de 2 horas',week:'día',month:'día del mes',year:'mes'}[state.period])));
+  els.push(...leyenda(430,270,[['Recibido',C.blue],['Entregado',C.ora],['Otras salidas',C.navy]]));
+  els.push(...stacked(62,300,696,246,D.buckets,[{key:'rec',color:C.blue},{key:'ent',color:C.ora},{key:'oth',color:C.navy}]));
+  // motivos
+  els.push(card(794,254,446,300), ...titulo(816,264,400,'¿Por qué se entregó?','Colaboradores por motivo del cambio'));
+  const ms = sortDesc(mc).slice(0,6).map(([k,v])=>[shortMotivo(k),v]);
+  if (ms.length) els.push(...hbars(816,306,402,ms,{ rowH:38, labelW:140 })); else els.push(T(816,330,402,60,'No hubo entregas a colaboradores en este periodo.',{ size:14, color:C.mut }));
+  // callouts
+  const prov = top1(a.prov), ar = top1(cnt(a.area)), pu = top1(cnt(a.puesto)), tu = top1(cnt(a.turno));
+  els.push(...callout(40,568,400,122,'¿Qué se recibió?', a.rec?`${fmt(a.rec)} piezas`:'Sin recepciones',
+    a.rec?`${prov?`Proveedor principal: ${cut(prov[0],26)} (${fmt(prov[1])} pzas). `:''}Calzado ${fmt(a.recTipo.Calzado)} · Guantes ${fmt(a.recTipo.Guantes)}.`:'No se registraron entradas por proveedor en este periodo.'));
+  els.push(...callout(460,568,400,122,'¿A quién se entregó?', N?`${fmt(N)} ${plural(N,'colaborador','colaboradores')}`:'Sin entregas',
+    N?`Área con más entregas: ${ar?cut(ar[0],18)+' ('+ar[1]+')':'—'}. Puesto: ${pu?cut(pu[0],18)+' ('+pu[1]+')':'—'}. Turno: ${tu?tu[0]+' ('+tu[1]+')':'—'}.`:'Nadie recibió calzado ni guantes en este periodo.'));
+  const sg = sortDesc(mc)[1];
+  els.push(...callout(880,568,360,122,'¿Con qué frecuencia?', tm?cut(shortMotivo(tm[0]),22):'—',
+    tm?`${tm[1]} de ${N} colaboradores (${pct}%).${sg?` Le sigue ${shortMotivo(sg[0]).toLowerCase()} con ${sg[1]}.`:''}`:'Sin datos de motivos.'));
+  return { name:'Resumen', els };
+}
+
+function slideEntregas(D,info){
+  const a = D.a, N = a.cols.size;
+  const els = frame('Entregas a colaboradores', `${alcance()} · ${etiquetaPeriodo()} · ${fmt(N)} ${plural(N,'colaborador','colaboradores')} · ${fmt(a.ent)} piezas`, 2, info);
+  // matriz área x motivo
+  const motivos = Array.from(new Set([...MOTIVOS_ORD, ...Array.from(a.motivo.keys())])).filter(m=>a.motivo.has(m));
+  const areasOrd = sortDesc(cnt(a.area)), areas = areasOrd.slice(0,7).map(x=>x[0]), resto = areasOrd.slice(7);
+  els.push(card(40,132,800,440), ...titulo(62,142,500,'Colaboradores por área y motivo del cambio','Cada colaborador cuenta una vez por categoría'));
+  const lw = 150, tw = 76, cw = motivos.length ? Math.min(100,(800-44-lw-tw)/motivos.length) : 100, x0 = 62, y0 = 196, rh = 36;
+  els.push(T(x0,y0,lw,30,'',{}));
+  motivos.forEach((m,k)=>els.push(T(x0+lw+k*cw,y0,cw,34,shortMotivo(m),{ size:12, bold:true, color:C.navy, align:'center', valign:'middle' })));
+  els.push(T(x0+lw+motivos.length*cw,y0,tw,34,'Total',{ size:12, bold:true, color:C.navy, align:'center', valign:'middle' }));
+  const filas = areas.map(ar=>({ lab:ar, cells:motivos.map(m=>a.matriz.get(ar)?.get(m)?.size||0), tot:cnt(a.area).get(ar) }));
+  if (resto.length){ const set = Array.from(new Set(resto.flatMap(([ar])=>Array.from(a.area.get(ar)))));
+    filas.push({ lab:`Otras ${resto.length} áreas`, cells:motivos.map(m=>{ const s = new Set(); resto.forEach(([ar])=>a.matriz.get(ar)?.get(m)?.forEach(v=>s.add(v))); return s.size; }), tot:set.length }); }
+  const mx = Math.max(1,...filas.flatMap(f=>f.cells));
+  filas.forEach((f,i)=>{
+    const yy = y0+36+i*rh;
+    els.push(T(x0,yy,lw,rh-4,cut(f.lab,20),{ size:13.5, bold:true, color:C.ink, valign:'middle' }));
+    f.cells.forEach((v,k)=>{ const t = v/mx;
+      els.push(R(x0+lw+k*cw+3,yy,cw-6,rh-5,v?mezcla(0.18+0.82*t):C.track,{ r:7 }), T(x0+lw+k*cw+3,yy,cw-6,rh-5,fmt(v),{ size:14, bold:true, color:t>0.5?'#FFFFFF':C.navy, align:'center', valign:'middle' })); });
+    els.push(R(x0+lw+motivos.length*cw+3,yy,tw-6,rh-5,C.yel,{ r:7 }), T(x0+lw+motivos.length*cw+3,yy,tw-6,rh-5,fmt(f.tot),{ size:14, bold:true, color:C.navy, align:'center', valign:'middle' }));
+  });
+  const yt = y0+36+filas.length*rh;
+  els.push(T(x0,yt,lw,rh-4,'Total',{ size:13.5, bold:true, valign:'middle' }));
+  motivos.forEach((m,k)=>els.push(R(x0+lw+k*cw+3,yt,cw-6,rh-5,C.yel,{ r:7 }), T(x0+lw+k*cw+3,yt,cw-6,rh-5,fmt(a.motivo.get(m).size),{ size:14, bold:true, color:C.navy, align:'center', valign:'middle' })));
+  els.push(R(x0+lw+motivos.length*cw+3,yt,tw-6,rh-5,C.navy,{ r:7 }), T(x0+lw+motivos.length*cw+3,yt,tw-6,rh-5,fmt(N),{ size:14, bold:true, color:'#FFFFFF', align:'center', valign:'middle' }));
+  if (!filas.length) els.push(T(62,250,700,40,'No hubo entregas a colaboradores en este periodo.',{ size:15, color:C.mut }));
+  // puesto
+  els.push(card(854,132,386,214), ...titulo(876,142,340,'Por puesto de trabajo'));
+  const ps = sortDesc(cnt(a.puesto)).slice(0,5);
+  if (ps.length) els.push(...hbars(876,176,344,ps,{ rowH:32, labelW:150, cut:21 }));
+  // turno
+  els.push(card(854,360,386,212), ...titulo(876,370,340,'Por turno'));
+  const tc = cnt(a.turno), tl = Array.from(tc.keys()).sort((x,y)=>{ const ix = TURNOS_ORD.indexOf(x), iy = TURNOS_ORD.indexOf(y); return (ix<0?99:ix)-(iy<0?99:iy); });
+  if (tl.length) els.push(...vbars(872,402,352,162,tl.map(k=>({ label:k.replace('Turno ','T'), v:tc.get(k), color:C.blue })),{ lsize:11 }));
+  // insight
+  const tm = top1(cnt(a.motivo)), ar = top1(cnt(a.area)), tu = top1(tc);
+  const txt = N ? `Se entregó EPP a ${fmt(N)} ${plural(N,'colaborador','colaboradores')} (${fmt(a.ent)} piezas: calzado ${fmt(a.entTipo.Calzado)}, guantes ${fmt(a.entTipo.Guantes)}). `
+      + `${tm?`El motivo más frecuente fue ${tm[0].toLowerCase()} (${tm[1]}). `:''}${ar?`El área con más entregas es ${ar[0]} (${ar[1]}). `:''}${tu?`El turno con más entregas es ${tu[0]} (${tu[1]}).`:''}`
+      : 'No hubo entregas a colaboradores en este periodo.';
+  els.push(...destacado(40,586,1200,104,txt));
+  return { name:'Entregas a colaboradores', els };
+}
+
+function slideRecibido(D,info){
+  const a = D.a;
+  const els = frame('Lo recibido y los movimientos', `${alcance()} · ${etiquetaPeriodo()}`, 3, info);
+  els.push(card(40,132,600,262), ...titulo(62,142,520,'Recibido por proveedor','Piezas con factura'));
+  const pv = sortDesc(a.prov).slice(0,5);
+  if (pv.length) els.push(...hbars(62,186,556,pv,{ rowH:40, labelW:200, cut:24 })); else els.push(T(62,210,540,50,'No se registraron entradas por proveedor en este periodo.',{ size:14, color:C.mut }));
+  els.push(card(40,408,600,282), ...titulo(62,418,520,'Tallas con más entregas','Piezas entregadas a colaboradores'));
+  const te = sortDesc(a.tallasEnt).slice(0,5);
+  if (te.length) els.push(...hbars(62,462,556,te,{ rowH:42, labelW:190 })); else els.push(T(62,486,540,50,'Sin entregas en este periodo.',{ size:14, color:C.mut }));
+  // tipo
+  els.push(...kpi(660,132,285,118,fmt(a.recTipo.Calzado),'calzado recibido (pzas)'), ...kpi(955,132,285,118,fmt(a.recTipo.Guantes),'guantes recibidos (pzas)'));
+  // tabla de movimientos
+  els.push(card(660,264,580,326), ...titulo(682,274,500,'Todos los movimientos del periodo'));
+  els.push(T(682,310,260,22,'Tipo',{ size:12, bold:true, color:C.mut, valign:'middle' }), T(950,310,90,22,'Registros',{ size:12, bold:true, color:C.mut, align:'right', valign:'middle' }), T(1050,310,170,22,'Piezas',{ size:12, bold:true, color:C.mut, align:'right', valign:'middle' }));
+  const n = k => a.n[k]||0;
+  const filas = [ ['Compra a proveedor',n('proveedor')+n('entradaOtra'),a.rec,C.blue], ['Entrega a colaboradores',n('entrega'),a.ent,C.ora], ['Préstamo a otro site',n('prestamoOut'),a.prestOut,C.navy],
+    ['Préstamo recibido',n('prestamoIn'),a.prestIn,C.navy], ['Baja / desecho',n('baja'),a.bajas,C.navy], ['Ajuste (entrada / salida)',n('ajusteIn')+n('ajusteOut'),null,C.mut], ['Transfer. Cuarto ⇄ Almacén',n('transfer'),a.transfer,C.mut] ];
+  filas.forEach((f,i)=>{ const yy = 336+i*34;
+    if (i%2===0) els.push(R(676,yy,552,32,'#F7F7F3',{ r:8 }));
+    els.push(R(690,yy+11,10,10,f[3],{ r:5 }), T(708,yy,240,32,f[0],{ size:14, color:C.ink, valign:'middle' }), T(950,yy,90,32,fmt(f[1]),{ size:14, color:C.mut, align:'right', valign:'middle' }),
+      T(1050,yy,170,32,f[2]===null?`+${fmt(a.ajIn)} / −${fmt(a.ajOut)}`:fmt(f[2]),{ size:14, bold:true, color:C.navy, align:'right', valign:'middle' })); });
+  const pr = top1(a.prov);
+  const txt = `${a.rec?`Se recibieron ${fmt(a.rec)} piezas${pr?`, la mayoría de ${pr[0]} (${fmt(pr[1])})`:''}. `:'No hubo recepciones de EPP en este periodo. '}`
+    + `${a.ent?`Salieron ${fmt(a.ent)} piezas a colaboradores`:'No hubo entregas a colaboradores'}${a.bajas?` y ${fmt(a.bajas)} se dieron de baja`:''}. `
+    + `${a.prestOut||a.prestIn?`Préstamos entre sites: ${fmt(a.prestOut)} prestadas y ${fmt(a.prestIn)} recibidas.`:''}`;
+  els.push(...destacado(660,602,580,88,txt));
+  return { name:'Recibido y movimientos', els };
+}
+
+function slideInventario(D,info){
+  const S = D.stock;
+  const els = frame('Inventario al corte y alertas', `${alcance()} · Cuarto de EPP · nivel mínimo y máximo por talla`, 4, info);
+  els.push(...kpi(40,132,236,100,fmt(S.cCal),'calzado en cuarto de EPP',{ size:38 }), ...kpi(288,132,236,100,fmt(S.cGua),'guantes en cuarto de EPP',{ size:38 }),
+    ...kpi(536,132,236,100,fmt(S.agot),'tallas agotadas',{ size:38, color:S.agot?C.red:C.navy }), ...kpi(784,132,236,100,fmt(S.esc),'tallas en escasez',{ size:38, color:S.esc?C.amber:C.navy }),
+    ...kpi(1032,132,208,100,fmt(S.sobre),'con sobreinventario',{ size:38, color:S.sobre?C.over:C.navy }));
+  // calzado por talla
+  els.push(card(40,246,620,338), ...titulo(62,256,560,'Calzado por talla','Cuarto de EPP · '+(state.site==='ALL'?'suma de los sites':'color según nivel')));
+  const base = {}; S.cuarto.filter(i=>i.tipo==='Calzado').forEach(i=>{ base[i.talla] = (base[i.talla]||0)+i.piezas; });
+  const col = t => { if (state.site==='ALL') return C.blue; const it = S.cuarto.find(i=>i.tipo==='Calzado'&&i.talla===t); const e = it?estadoFor(it):'ok'; return e==='danger'?C.red:e==='warn'?C.amber:e==='over'?C.over:C.navy; };
+  els.push(...vbars(62,296,578,282,SHOE_ORDER.map(t=>({ label:t, v:base[t]||0, color:col(t) })),{ lsize:12 }));
+  // alertas
+  els.push(card(674,246,566,338), ...titulo(696,256,520,'Alertas de stock','Agotado · Escasez · Sobreinventario'));
+  const al = S.alertas.slice(0,8), rh = 31;
+  if (!al.length) els.push(T(696,300,520,50,'Todas las tallas están dentro de su rango.',{ size:15, color:C.mut }));
+  al.forEach((x,i)=>{ const yy = 314+i*rh, it = x.item, lim = limitsFor(it);
+    const colr = x.e==='danger'?C.red:x.e==='warn'?C.amber:C.over, lab = x.e==='danger'?'Agotado':x.e==='warn'?'Escasez':'Sobre';
+    if (i%2===0) els.push(R(690,yy,538,rh-2,'#F7F7F3',{ r:8 }));
+    els.push(R(702,yy+10,10,10,colr,{ r:5 }), T(720,yy,270,rh-2,`${state.site==='ALL'?x.site+' · ':''}${it.tipo==='Calzado'?'Talla ':'Guante '}${labelFor(it)}`,{ size:13.5, color:C.ink, valign:'middle' }),
+      T(980,yy,70,rh-2,fmt(it.piezas)+' pzas',{ size:13, bold:true, color:C.navy, align:'right', valign:'middle' }), T(1056,yy,160,rh-2,`${lab}${lim?` (${lim.min}–${lim.max})`:''}`,{ size:12, color:colr, bold:true, align:'right', valign:'middle' })); });
+  if (S.alertas.length>8) els.push(T(696,314+8*rh+2,520,20,`+ ${S.alertas.length-8} alertas más`,{ size:12, color:C.mut, valign:'middle' }));
+  const txt = `En el Cuarto de EPP hay ${fmt(S.cCal)} piezas de calzado y ${fmt(S.cGua)} de guantes; en el Almacén ${fmt(S.aCal)} de calzado y ${fmt(S.aGua)} de guantes. `
+    + (S.alertas.length?`Hay ${S.agot} ${plural(S.agot,'talla agotada','tallas agotadas')}, ${S.esc} en escasez y ${S.sobre} con sobreinventario.`:'No hay tallas fuera de rango.');
+  els.push(...destacado(40,598,1200,92,txt));
+  return { name:'Inventario y alertas', els };
+}
+
+function slideComparativo(D,info){
+  const els = frame('Comparativo entre sites', `${etiquetaPeriodo()} · ${SITES.join(', ')}`, 5, info);
+  const cols = [['Site',110,'left'],['Recibido',110,'right'],['Entregado',110,'right'],['Colabor.',110,'right'],['Bajas',90,'right'],['Prest. dado',110,'right'],['Prest. recib.',110,'right'],['Calzado',100,'right'],['Guantes',100,'right'],['Alertas',90,'right']];
+  const tw = cols.reduce((s,c)=>s+c[1],0), x0 = 62, y0 = 150;
+  els.push(card(40,132,1200,330));
+  let cx = x0; cols.forEach(c=>{ els.push(T(cx,y0,c[1]-10,30,c[0],{ size:13, bold:true, color:C.mut, align:c[2], valign:'middle' })); cx += c[1]; });
+  const RH = D.porSite.length>4?40:50, tot = { rec:0, ent:0, cols:new Set(), baj:0, po:0, pi:0, cal:0, gua:0, al:0 };
+  D.porSite.forEach((p,i)=>{ const s = D.porSiteStock[i], a = p.a, yy = y0+36+i*RH;
+    const v = [p.site,fmt(a.rec),fmt(a.ent),fmt(a.cols.size),fmt(a.bajas),fmt(a.prestOut),fmt(a.prestIn),fmt(s.cal),fmt(s.gua),fmt(s.alert)];
+    els.push(R(54,yy,1172,RH-6,i%2?'#FFFFFF':'#F7F7F3',{ r:10 }));
+    let cx2 = x0; cols.forEach((c,k)=>{ els.push(T(cx2,yy,c[1]-10,RH-6,v[k],{ size:15, bold:k===0||k===3, color:k===0?C.navy:C.ink, align:c[2], valign:'middle' })); cx2 += c[1]; });
+    tot.rec+=a.rec; tot.ent+=a.ent; a.cols.forEach(x=>tot.cols.add(p.site+x)); tot.baj+=a.bajas; tot.po+=a.prestOut; tot.pi+=a.prestIn; tot.cal+=s.cal; tot.gua+=s.gua; tot.al+=s.alert; });
+  const yt = y0+36+D.porSite.length*RH, vt = ['Total',fmt(tot.rec),fmt(tot.ent),fmt(tot.cols.size),fmt(tot.baj),fmt(tot.po),fmt(tot.pi),fmt(tot.cal),fmt(tot.gua),fmt(tot.al)];
+  els.push(R(54,yt,1172,44,C.yel,{ r:10 })); let cx3 = x0; cols.forEach((c,k)=>{ els.push(T(cx3,yt,c[1]-10,44,vt[k],{ size:15, bold:true, color:C.navy, align:c[2], valign:'middle' })); cx3 += c[1]; });
+  // barras colaboradores y recibido
+  const bs = D.porSite.map(p=>[p.site,p.a.cols.size]), br = D.porSite.map(p=>[p.site,p.a.rec]);
+  els.push(card(40,476,590,214), ...titulo(62,486,520,'Colaboradores atendidos por site'), ...hbars(62,516,546,bs,{ rowH:D.porSite.length>4?30:36, labelW:90, hl:false }));
+  els.push(card(650,476,590,214), ...titulo(672,486,520,'Piezas recibidas por site'), ...hbars(672,516,546,br,{ rowH:D.porSite.length>4?30:36, labelW:90, hl:false }));
+  return { name:'Comparativo entre sites', els };
+}
+
+function construir(){
+  const D = compute(), now = new Date();
+  const info = { sitePill: state.site==='ALL'?'4 SITES':state.site, corte:`${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}` };
+  const slides = [ slideResumen(D,info), slideEntregas(D,info), slideRecibido(D,info), slideInventario(D,info) ];
+  if (state.site==='ALL') slides.push(slideComparativo(D,info));
+  state.slides = slides; state.info = D;
+  return slides;
+}
+
+/* ---------------- dibujo en pantalla / PDF ---------------- */
+function slideHTML(sl){
+  const ptj = { top:'flex-start', middle:'center', bottom:'flex-end' }, ptx = { left:'flex-start', center:'center', right:'flex-end' };
+  return sl.els.map(e=>{
+    if (e.t==='r') return `<div style="position:absolute;left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px;background:${e.fill};border-radius:${Math.min(e.r||0,Math.min(e.w,e.h)/2)}px;box-sizing:border-box;${e.line?`border:1.5px solid ${e.line};`:''}"></div>`;
+    if (!e.text) return '';
+    const safe = e.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<div style="position:absolute;left:${e.x}px;top:${e.y}px;width:${e.w}px;height:${e.h}px;display:flex;align-items:${ptj[e.valign]};justify-content:${ptx[e.align]};overflow:hidden;font:${e.bold?800:600} ${e.size}px/1.25 ${FONT};color:${e.color}"><div style="width:100%;text-align:${e.align}">${safe}</div></div>`;
+  }).join('');
+}
+function pintar(){
+  const box = $('an-slides'); box.innerHTML = '';
+  state.slides.forEach((sl,i)=>{
+    const wrap = document.createElement('div'); wrap.className = 'an-wrap';
+    wrap.innerHTML = `<div class="an-slide" style="width:1280px;height:720px">${slideHTML(sl)}</div>`;
+    box.appendChild(wrap);
+  });
+  escalar();
+}
+function escalar(){
+  const box = $('an-slides'); if (!box) return;
+  const s = Math.min(1, box.clientWidth/1280);
+  box.querySelectorAll('.an-wrap').forEach(w=>{ w.style.height = (720*s)+'px'; w.style.width = (1280*s)+'px'; w.firstElementChild.style.transform = `scale(${s})`; });
+}
+
+/* ---------------- descargas ---------------- */
+function cargarScript(src){
+  return new Promise((ok,fail)=>{ const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ()=>fail(new Error('No se pudo cargar '+src)); document.head.appendChild(s); });
+}
+const LIBS = { pptx:'https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js', jspdf:'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', h2c:'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js' };
+function nombreArchivo(ext){
+  const [s] = rango();
+  return `Analisis_EPP_${state.site==='ALL'?'Todos_los_sites':state.site}_${{day:'dia',week:'semana',month:'mes',year:'anio'}[state.period]}_${s.getFullYear()}-${pad(s.getMonth()+1)}-${pad(s.getDate())}.${ext}`;
+}
+function estado(txt){ const el = $('an-msg'); el.textContent = txt||''; el.hidden = !txt; }
+async function bajarPDF(){
+  const btn = $('an-pdf'); btn.disabled = true; estado('Generando PDF…');
+  const host = document.createElement('div');
+  try{
+    if (!window.jspdf) await cargarScript(LIBS.jspdf);
+    if (!window.html2canvas) await cargarScript(LIBS.h2c);
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    host.style.cssText = 'position:fixed;left:-20000px;top:0;width:1280px;height:720px;';
+    document.body.appendChild(host);
+    const pdf = new window.jspdf.jsPDF({ orientation:'landscape', unit:'px', format:[1280,720], hotfixes:['px_scaling'] });
+    for (let i=0;i<state.slides.length;i++){
+      estado(`Generando PDF… página ${i+1} de ${state.slides.length}`);
+      host.innerHTML = `<div style="position:relative;width:1280px;height:720px;overflow:hidden;background:${C.bg}">${slideHTML(state.slides[i])}</div>`;
+      const canvas = await window.html2canvas(host.firstElementChild,{ scale:2, backgroundColor:C.bg, logging:false });
+      if (i) pdf.addPage([1280,720],'landscape');
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,1280,720);
+    }
+    pdf.save(nombreArchivo('pdf')); estado('PDF listo.'); setTimeout(()=>estado(''),2500);
+  }catch(err){ console.error(err); estado('No se pudo generar el PDF: '+err.message); }
+  finally{ host.remove(); btn.disabled = false; }
+}
+async function bajarPPTX(){
+  const btn = $('an-pptx'); btn.disabled = true; estado('Generando PPTX…');
+  try{
+    if (!window.PptxGenJS) await cargarScript(LIBS.pptx);
+    const pptx = new window.PptxGenJS();
+    pptx.defineLayout({ name:'SHE', width:1280/96, height:720/96 }); pptx.layout = 'SHE';
+    pptx.title = 'Análisis de EPP'; pptx.author = 'Safety Health Environment (SHE)';
+    const px = v => v/96, hex = c => c.replace('#','');
+    state.slides.forEach(sl=>{
+      const s = pptx.addSlide();
+      sl.els.forEach(e=>{
+        if (e.t==='r'){
+          const rr = Math.min(e.r||0, Math.min(e.w,e.h)/2);
+          s.addShape(rr>0?pptx.ShapeType.roundRect:pptx.ShapeType.rect, { x:px(e.x), y:px(e.y), w:px(e.w), h:px(e.h), fill:{ color:hex(e.fill) },
+            line: e.line ? { color:hex(e.line), width:1 } : { type:'none' }, ...(rr>0?{ rectRadius:px(rr) }:{}) });
+        } else if (e.text){
+          s.addText(e.text, { x:px(e.x), y:px(e.y), w:px(e.w), h:px(e.h), fontSize:e.size*0.75, bold:e.bold, color:hex(e.color), align:e.align, valign:e.valign,
+            fontFace:'Arial', margin:0, wrap:true, fit:'none' });
+        }
+      });
+    });
+    await pptx.writeFile({ fileName:nombreArchivo('pptx') }); estado('PPTX listo.'); setTimeout(()=>estado(''),2500);
+  }catch(err){ console.error(err); estado('No se pudo generar el PPTX: '+err.message); }
+  finally{ btn.disabled = false; }
+}
+
+/* ---------------- interfaz ---------------- */
+function refrescarControles(){
+  document.querySelectorAll('#an-periodos button').forEach(b=>b.classList.toggle('active', b.dataset.p===state.period));
+  $('an-etiqueta').textContent = etiquetaPeriodo();
+  $('an-site').value = state.site;
+}
+function render(){
+  if (!$('an-slides') || !ALL_MOVEMENTS) return;
+  if (!state.jumped && ALL_MOVEMENTS.length){
+    state.jumped = true; const D0 = compute();
+    if (!D0.rows.length && D0.ultimo) state.anchor = D0.ultimo;    // si hoy no hay nada, abre en el último periodo con datos
+  }
+  const slides = construir(); refrescarControles(); pintar();
+  const aviso = $('an-aviso');
+  aviso.hidden = !!state.info.rows.length;
+  aviso.querySelector('button').hidden = !state.info.ultimo;
+  const sinDatos = !ALL_MOVEMENTS.length; $('an-pdf').disabled = sinDatos; $('an-pptx').disabled = sinDatos;
+}
+function iniciar(){
+  $('an-site').innerHTML = `<option value="ALL">Todos los sites</option>` + SITES.map(s=>`<option value="${s}">${s}</option>`).join('');
+  state.site = currentSite || 'MXCD10';
+  document.querySelectorAll('#an-periodos button').forEach(b=>b.addEventListener('click',()=>{ state.period = b.dataset.p; state.anchor = new Date(state.anchor); render(); }));
+  $('an-prev').addEventListener('click',()=>{ mover(-1); render(); });
+  $('an-next').addEventListener('click',()=>{ mover(1); render(); });
+  $('an-hoy').addEventListener('click',()=>{ state.anchor = new Date(); render(); });
+  $('an-site').addEventListener('change',e=>{ state.site = e.target.value; render(); });
+  $('an-pdf').addEventListener('click',bajarPDF); $('an-pptx').addEventListener('click',bajarPPTX);
+  $('an-aviso').querySelector('button').addEventListener('click',()=>{ if (state.info.ultimo){ state.anchor = state.info.ultimo; render(); } });
+  window.addEventListener('resize',escalar);
+  document.querySelectorAll('.view-tab').forEach(b=>b.addEventListener('click',()=>vista(b.dataset.v)));
+  vista(location.hash==='#analisis' ? 'an' : 'inv');
+}
+function vista(v){
+  $('view-inv').hidden = v!=='inv'; $('view-an').hidden = v!=='an';
+  document.querySelectorAll('.view-tab').forEach(b=>b.classList.toggle('active', b.dataset.v===v));
+  try{ history.replaceState(null,'',v==='an'?'#analisis':location.pathname+location.search); }catch(e){}
+  if (v==='an') render();
+}
+window.renderAnalisis = ()=>{ if (!$('view-an').hidden) render(); };
+window.__an = { state, compute, construir, rango };
+iniciar();
+})();
 </script>
 </body>
 </html>
