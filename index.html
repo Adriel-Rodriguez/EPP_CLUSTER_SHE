@@ -633,8 +633,13 @@ function buildItemsFromCSV(text){
     piezas: header.findIndex(h=>h.startsWith('Número de piezas')),
     site: header.indexOf('SITE MX'),
     area: header.indexOf('Ubicación del EPP'),
-    analista: header.indexOf('Nombre del analista')
+    analista: header.indexOf('Nombre del analista'),
+    // Columnas opcionales (si no existen en la hoja, idx = -1 y quedan vacías)
+    proveedor: header.indexOf('Proveedor'),
+    evidencia: header.indexOf('Evidencia'),
+    prestamoCon: header.indexOf('Préstamo con')
   };
+  const optCol = (cols, i) => i >= 0 ? (cols[i]||'').trim() : '';
   // Movimientos de transferencia entre áreas (no son una entrada/salida real del inventario total,
   // solo cambian el EPP de lugar). Dirección fija según el nombre exacto del movimiento:
   const TRANSFER_TO_ALMACEN_RE = /^salida de epp por entrega a almac/i;      // Cuarto de EPP -> Almacén
@@ -654,6 +659,9 @@ function buildItemsFromCSV(text){
       talla: (cols[idx.talla]||'').trim(),
       medida: (cols[idx.medida]||'').trim(),
       magnitud,
+      proveedor: optCol(cols, idx.proveedor),
+      evidencia: optCol(cols, idx.evidencia),
+      prestamoCon: optCol(cols, idx.prestamoCon),
       site: siteRaw || DEFAULT_SITE, // registros sin site capturado se asignan al site por defecto
       area: areaRaw || DEFAULT_AREA // registros sin área capturada se asignan al Cuarto de EPP
     };
@@ -878,6 +886,10 @@ function renderInventoryTable(items){
   });
 }
 
+function escHtml(t){
+  return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function renderActivityFeed(){
   const scope = ALL_MOVEMENTS.filter(m => m.site === currentSite && m.area === currentArea);
   const sorted = [...scope].sort((a,b)=>{
@@ -912,13 +924,22 @@ function renderActivityFeed(){
     }
     const isSalida = m.piezas < 0;
     const label = m.talla !== 'N/A' ? m.talla : m.medida;
+    // Detalle extra: préstamo entre sites, proveedor y link a la evidencia (texto escapado: viene de la hoja)
+    const esPrestamo = /pr[eé]stamo/i.test(m.movimiento);
+    let detalle = '';
+    if (esPrestamo) detalle = m.prestamoCon
+      ? (isSalida ? ` · 🤝 Préstamo a ${escHtml(m.prestamoCon)}` : ` · 🤝 Préstamo de ${escHtml(m.prestamoCon)}`)
+      : ' · 🤝 Préstamo entre sites';
+    else if (m.proveedor) detalle = ` · 🧾 Proveedor: ${escHtml(m.proveedor)}`;
+    const linkEv = /^https:\/\//i.test(m.evidencia)
+      ? ` · <a href="${escHtml(m.evidencia)}" target="_blank" rel="noopener noreferrer" style="color:#3483FA;font-weight:700;text-decoration:none">📎 Evidencia</a>` : '';
     const row = document.createElement('div');
     row.className = 'activity-row';
     row.innerHTML = `
       <div class="activity-icon ${isSalida ? 'out':'in'}">${isSalida ? '↓' : '↑'}</div>
       <div class="activity-main">
         <div class="line1">${m.tipo} · ${label}</div>
-        <div class="line2">${m.marca}${m.analista ? ' · ' + m.analista : ''}</div>
+        <div class="line2">${m.marca}${m.analista ? ' · ' + escHtml(m.analista) : ''}${detalle}${linkEv}</div>
       </div>
       <div class="activity-qty ${isSalida ? 'out':'in'}">${isSalida ? '' : '+'}${m.piezas}</div>
     `;
