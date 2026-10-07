@@ -1522,6 +1522,14 @@ function slideEntregas(D,info){
   const a = D.a, N = a.cols.size;
   const els = frame('Entregas a colaboradores', `${alcance()} · ${etiquetaPeriodo()} · ${fmt(N)} ${plural(N,'colaborador','colaboradores')} · ${fmt(a.ent)} piezas`, 2, info);
   // matriz área x motivo
+  if (!N){
+    els.push(card(40,132,1200,440), ...titulo(62,142,700,'Colaboradores por área, motivo, puesto y turno'),
+      R(520,262,240,6,C.ora,{ r:3 }),
+      T(240,290,800,44,'Sin entregas a colaboradores en este periodo',{ size:26, bold:true, color:C.navy, align:'center', valign:'middle' }),
+      T(240,342,800,60,'Cuando se registren entregas, aquí verás cuántos colaboradores recibieron EPP, por qué motivo, de qué área, puesto y turno.',{ size:16, color:C.mut, align:'center' }));
+    els.push(...destacado(40,586,1200,104,'No hubo entregas a colaboradores en este periodo. Prueba con otro periodo o con Todos los sites.'));
+    return { name:'Entregas a colaboradores', els };
+  }
   const motivos = Array.from(new Set([...MOTIVOS_ORD, ...Array.from(a.motivo.keys())])).filter(m=>a.motivo.has(m));
   const areasOrd = sortDesc(cnt(a.area)), areas = areasOrd.slice(0,7).map(x=>x[0]), resto = areasOrd.slice(7);
   els.push(card(40,132,800,440), ...titulo(62,142,500,'Colaboradores por área y motivo del cambio','Cada colaborador cuenta una vez por categoría'));
