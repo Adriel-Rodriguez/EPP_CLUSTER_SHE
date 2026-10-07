@@ -952,7 +952,18 @@ function renderChart(canvasId, items, order, color){
   });
 }
 
+// Las tallas/medidas esperadas que nunca se han capturado se muestran en 0 (solo en el Cuarto de EPP).
+function completarTallas(items, site, area){
+  if (area !== 'Cuarto de EPP') return items;
+  const out = [...items];
+  const tiene = (tipo,t) => items.some(i=>i.tipo===tipo && labelFor(i)===t);
+  SHOE_ORDER.forEach(t=>{ if (!tiene('Calzado',t)) out.push({tipo:'Calzado',talla:t,medida:'N/A',piezas:0,site,area,key:`Calzado|${t}|N/A`}); });
+  GLOVE_ORDER.forEach(m=>{ if (!tiene('Guantes de seguridad',m)) out.push({tipo:'Guantes de seguridad',talla:'N/A',medida:m,piezas:0,site,area,key:`Guantes de seguridad|N/A|${m}`}); });
+  return out;
+}
+
 function renderAll(items){
+  items = completarTallas(items, currentSite, currentArea);
   const calzado = items.filter(i=>i.tipo==='Calzado');
   const guantes = items.filter(i=>i.tipo==='Guantes de seguridad');
 
@@ -1360,7 +1371,7 @@ function compute(){
   const porSite = sites.map(s=>({ site:s, a:agg(rows.filter(x=>x.r.site===s)) }));
   // inventario al corte (no depende del periodo)
   const items = ALL_ITEMS.filter(i=>sites.includes(i.site));
-  const cuarto = items.filter(i=>i.area==='Cuarto de EPP'), alm = items.filter(i=>i.area==='Almacén');
+  const cuarto = sites.flatMap(s=>completarTallas(items.filter(i=>i.site===s && i.area==='Cuarto de EPP'), s, 'Cuarto de EPP')), alm = items.filter(i=>i.area==='Almacén');
   const sum = (arr,t) => arr.filter(i=>i.tipo===t).reduce((s,i)=>s+i.piezas,0);
   const alertas = cuarto.filter(i=>estadoFor(i)!=='ok').map(i=>({ site:i.site, item:i, e:estadoFor(i) }))
       .sort((x,y)=>({danger:0,warn:1,over:2}[x.e]-{danger:0,warn:1,over:2}[y.e]) || x.site.localeCompare(y.site));
