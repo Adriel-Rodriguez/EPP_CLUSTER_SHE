@@ -396,6 +396,36 @@
   .an-nav button,.an-btn{border:1.5px solid var(--navy);background:#fff;color:var(--navy);font-family:inherit;font-size:14px;font-weight:700;padding:8px 14px;border-radius:12px;cursor:pointer;}
   .an-nav button:hover,.an-btn:hover{background:#EDEDF8;}
   .an-nav .lbl{min-width:210px;text-align:center;font-weight:800;color:var(--navy);font-size:15px;}
+  .an-cal-wrap{position:relative;}
+  .an-trig{display:flex;align-items:center;gap:10px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);font-family:inherit;font-size:15px;font-weight:800;padding:9px 14px;border-radius:12px;cursor:pointer;min-width:250px;}
+  .an-trig:hover,.an-trig[aria-expanded="true"]{background:#EDEDF8;}
+  .an-trig .car{margin-left:auto;font-size:12px;}
+  .an-pop{position:absolute;z-index:30;top:calc(100% + 8px);left:0;width:310px;background:#fff;color:#1F234F;border:1px solid #E3E3DD;border-radius:16px;box-shadow:0 12px 32px rgba(31,35,79,.22);padding:14px;}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .cal-head .t{font-weight:800;font-size:15px;color:#2D3277;text-transform:capitalize;}
+  .cal-head button{border:none;background:#F2F2F9;color:#2D3277;width:32px;height:32px;border-radius:10px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;}
+  .cal-head button:hover{background:#E1E1F2;}
+  .cal-dow,.cal-row{display:grid;grid-template-columns:repeat(7,1fr);}
+  .cal-dow span{font-size:11px;font-weight:800;color:#7A7E9E;text-align:center;padding:4px 0;}
+  .cal-row{border-radius:10px;}
+  .cal-row.wk:hover{background:#EDEDF8;}
+  .cal-row.insel{background:#E4E5F6;}
+  .cal-d{position:relative;border:none;background:transparent;font-family:inherit;font-size:13.5px;font-weight:700;color:#1F234F;height:36px;border-radius:10px;cursor:pointer;}
+  .cal-d.out{color:#B4B7CC;}
+  .cal-d.hoy{box-shadow:inset 0 0 0 1.5px #FF7A2F;}
+  .cal-d.sel{background:#2D3277;color:#fff;}
+  .cal-row.insel .cal-d:not(.sel){background:transparent;}
+  .cal-row:not(.wk) .cal-d:hover:not(.sel){background:#EDEDF8;}
+  .cal-d.dato::after{content:"";position:absolute;left:50%;bottom:4px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#3483FA;}
+  .cal-d.sel.dato::after{background:#FFE600;}
+  .cal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .cal-grid .cal-d{height:44px;font-size:14px;}
+  .cal-foot{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #E3E3DD;}
+  .cal-foot button{flex:1;border:1.5px solid #2D3277;background:#fff;color:#2D3277;border-radius:10px;font-family:inherit;font-weight:700;font-size:13px;padding:7px 8px;cursor:pointer;}
+  .cal-foot button:hover{background:#EDEDF8;}
+  .cal-leyenda{font-size:11.5px;color:#7A7E9E;margin-top:8px;display:flex;align-items:center;gap:6px;}
+  .cal-leyenda i{width:6px;height:6px;border-radius:50%;background:#3483FA;display:inline-block;}
+  @media (max-width:520px){ .an-trig{min-width:0;width:100%;} .an-cal-wrap{width:100%;} .an-pop{width:min(310px,calc(100vw - 32px));} }
   .an-btn.solid{background:var(--navy);color:#fff;}
   .an-btn.solid:hover{background:#1F234F;}
   .an-btn:disabled{opacity:.5;cursor:wait;}
@@ -587,9 +617,15 @@
   <div id="view-an" hidden>
     <div class="an-bar">
       <div class="an-seg" id="an-periodos">
-        <button type="button" data-p="day">Día</button><button type="button" data-p="week">Semana</button><button type="button" data-p="month">Mes</button><button type="button" data-p="year">Año</button>
+        <button type="button" data-p="day" id="an-p-day">Día</button><button type="button" data-p="week">Semana</button><button type="button" data-p="month">Mes</button><button type="button" data-p="year">Año</button>
       </div>
-      <div class="an-nav"><button type="button" id="an-prev" aria-label="Anterior">◀</button><span class="lbl" id="an-etiqueta">—</span><button type="button" id="an-next" aria-label="Siguiente">▶</button><button type="button" id="an-hoy">Hoy</button></div>
+      <div class="an-cal-wrap">
+        <button type="button" class="an-trig" id="an-trig" aria-haspopup="dialog" aria-expanded="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+          <span id="an-etiqueta">—</span><span class="car" aria-hidden="true">▾</span>
+        </button>
+        <div class="an-pop" id="an-cal" role="dialog" aria-label="Elegir fecha" hidden></div>
+      </div>
       <div class="site-selector" style="margin:0"><label for="an-site">Site</label><select class="site-select" id="an-site"></select></div>
       <span class="an-spacer"></span>
       <button class="an-btn solid" id="an-pdf" type="button">⬇ Descargar PDF</button>
@@ -1738,7 +1774,62 @@ async function bajarPPTX(){
 }
 
 /* ---------------- interfaz ---------------- */
+/* ---- calendario ---- */
+const cal = { vy:0, vm:0, vyBase:0 };
+function datosPorFecha(){
+  const sites = state.site==='ALL' ? SITES : [state.site], d = new Set(), m = new Set(), y = new Set();
+  ALL_MOVEMENTS.forEach(r=>{
+    if (r.invalido || !sites.includes(r.site)) return;
+    const f = parseMarca(r.marca); if (!f) return;
+    d.add(`${f.getFullYear()}-${f.getMonth()}-${f.getDate()}`); m.add(`${f.getFullYear()}-${f.getMonth()}`); y.add(f.getFullYear());
+  });
+  return { d, m, y };
+}
+function abrirCal(){
+  const a = state.anchor; cal.vy = a.getFullYear(); cal.vm = a.getMonth(); cal.vyBase = Math.floor(a.getFullYear()/12)*12;
+  $('an-cal').hidden = false; $('an-trig').setAttribute('aria-expanded','true'); pintarCal();
+}
+function cerrarCal(){ $('an-cal').hidden = true; $('an-trig').setAttribute('aria-expanded','false'); }
+function elegir(fecha){ state.anchor = fecha; cerrarCal(); render(); }
+function pintarCal(){
+  const el = $('an-cal'), dat = datosPorFecha(), hoy = new Date(), [ini,fin] = rango();
+  let html = '';
+  if (state.period==='day' || state.period==='week'){
+    const first = new Date(cal.vy, cal.vm, 1), lead = (first.getDay()+6)%7, start = new Date(cal.vy, cal.vm, 1-lead);
+    html += `<div class="cal-head"><button type="button" data-n="-1" aria-label="Mes anterior">‹</button><span class="t">${MESES[cal.vm]} ${cal.vy}</span><button type="button" data-n="1" aria-label="Mes siguiente">›</button></div>`;
+    html += `<div class="cal-dow">${DIA3.map(x=>`<span>${x[0]}</span>`).join('')}</div>`;
+    for (let w=0; w<6; w++){
+      const dias = Array.from({length:7},(_,k)=>new Date(start.getFullYear(), start.getMonth(), start.getDate()+w*7+k));
+      const insel = state.period==='week' && dias.some(x=>x>=ini && x<fin);
+      html += `<div class="cal-row ${state.period==='week'?'wk':''} ${insel?'insel':''}">` + dias.map(x=>{
+        const sel = x>=ini && x<fin && (state.period==='week' ? false : true);
+        const cls = ['cal-d', x.getMonth()!==cal.vm?'out':'', x.toDateString()===hoy.toDateString()?'hoy':'', sel?'sel':'', dat.d.has(`${x.getFullYear()}-${x.getMonth()}-${x.getDate()}`)?'dato':''].join(' ');
+        return `<button type="button" class="${cls}" data-f="${x.getFullYear()}-${x.getMonth()}-${x.getDate()}">${x.getDate()}</button>`;
+      }).join('') + `</div>`;
+    }
+  } else if (state.period==='month'){
+    html += `<div class="cal-head"><button type="button" data-n="-12" aria-label="Año anterior">‹</button><span class="t">${cal.vy}</span><button type="button" data-n="12" aria-label="Año siguiente">›</button></div><div class="cal-grid">`;
+    html += MES3.map((n,k)=>`<button type="button" class="cal-d ${ini.getFullYear()===cal.vy && ini.getMonth()===k?'sel':''} ${dat.m.has(cal.vy+'-'+k)?'dato':''}" data-f="${cal.vy}-${k}-1">${n}</button>`).join('') + `</div>`;
+  } else {
+    html += `<div class="cal-head"><button type="button" data-n="-12" aria-label="Años anteriores">‹</button><span class="t">${cal.vyBase} – ${cal.vyBase+11}</span><button type="button" data-n="12" aria-label="Años siguientes">›</button></div><div class="cal-grid">`;
+    html += Array.from({length:12},(_,k)=>cal.vyBase+k).map(y=>`<button type="button" class="cal-d ${ini.getFullYear()===y?'sel':''} ${dat.y.has(y)?'dato':''}" data-f="${y}-0-1">${y}</button>`).join('') + `</div>`;
+  }
+  html += `<div class="cal-leyenda"><i></i> días con movimientos</div><div class="cal-foot"><button type="button" data-a="hoy">Hoy</button><button type="button" data-a="ultimo">Último con datos</button></div>`;
+  el.innerHTML = html;
+  el.querySelectorAll('[data-n]').forEach(b=>b.addEventListener('click',()=>{
+    const n = +b.dataset.n;
+    if (state.period==='day'||state.period==='week'){ const f = new Date(cal.vy, cal.vm+n, 1); cal.vy = f.getFullYear(); cal.vm = f.getMonth(); }
+    else if (state.period==='month') cal.vy += n; else cal.vyBase += n;
+    pintarCal();
+  }));
+  el.querySelectorAll('[data-f]').forEach(b=>b.addEventListener('click',()=>{ const [y,m,d] = b.dataset.f.split('-').map(Number); elegir(new Date(y,m,d)); }));
+  el.querySelector('[data-a="hoy"]').addEventListener('click',()=>elegir(new Date()));
+  el.querySelector('[data-a="ultimo"]').addEventListener('click',()=>{ const u = state.info && state.info.ultimo; if (u) elegir(u); else cerrarCal(); });
+}
+
 function refrescarControles(){
+  const hoyDia = state.period==='day' && state.anchor.toDateString()===new Date().toDateString();
+  $('an-p-day').textContent = hoyDia ? 'Hoy' : 'Día';
   document.querySelectorAll('#an-periodos button').forEach(b=>b.classList.toggle('active', b.dataset.p===state.period));
   $('an-etiqueta').textContent = etiquetaPeriodo();
   $('an-site').value = state.site;
@@ -1758,10 +1849,11 @@ function render(){
 function iniciar(){
   $('an-site').innerHTML = `<option value="ALL">Todos los sites</option>` + SITES.map(s=>`<option value="${s}">${s}</option>`).join('');
   state.site = currentSite || 'MXCD10';
-  document.querySelectorAll('#an-periodos button').forEach(b=>b.addEventListener('click',()=>{ state.period = b.dataset.p; state.anchor = new Date(state.anchor); render(); }));
-  $('an-prev').addEventListener('click',()=>{ mover(-1); render(); });
-  $('an-next').addEventListener('click',()=>{ mover(1); render(); });
-  $('an-hoy').addEventListener('click',()=>{ state.anchor = new Date(); render(); });
+  document.querySelectorAll('#an-periodos button').forEach(b=>b.addEventListener('click',()=>{ state.period = b.dataset.p; state.anchor = new Date(state.anchor); render(); if (!$('an-cal').hidden) abrirCal(); }));
+  $('an-trig').addEventListener('click',()=>{ if ($('an-cal').hidden) abrirCal(); else cerrarCal(); });
+  $('an-cal').addEventListener('click',e=>e.stopPropagation());   // el calendario se redibuja al navegar: evita que el clic cuente como "afuera"
+  document.addEventListener('click',e=>{ if (!$('an-cal').hidden && !e.target.closest('.an-cal-wrap')) cerrarCal(); });
+  document.addEventListener('keydown',e=>{ if (e.key==='Escape' && !$('an-cal').hidden){ cerrarCal(); $('an-trig').focus(); } });
   $('an-site').addEventListener('change',e=>{ state.site = e.target.value; render(); });
   $('an-pdf').addEventListener('click',bajarPDF); $('an-pptx').addEventListener('click',bajarPPTX);
   $('an-aviso').querySelector('button').addEventListener('click',()=>{ if (state.info.ultimo){ state.anchor = state.info.ultimo; render(); } });
