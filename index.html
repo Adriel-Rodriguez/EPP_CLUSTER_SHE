@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventario de EPP — MXCD10</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#2D3277;
+    --navy-dark:#1F234F;
+    --yellow:#FFE600;
+    --bg-page:#F5F5FA;
+    --bg-card:#ffffff;
+    --text-primary:#1F234F;
+    --text-secondary:#7A7E9E;
+    --ok:#2D3277;
+    --warn:#F5A623;
+    --danger:#E1332B;
+    --radius:16px;
+    --gap:18px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Poppins',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg-page);
+    color:var(--text-primary);
+  }
+  .wrap{max-width:1240px;margin:0 auto;padding:22px 20px 40px;}
+
+  /* topbar */
+  .topbar{
+    display:flex;align-items:center;gap:8px;
+    font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--navy);
+    text-transform:uppercase;margin-bottom:14px;
+  }
+  .topbar .dot{width:8px;height:8px;border-radius:50%;background:var(--yellow);}
+
+  /* site selector */
+  .site-selector{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .site-selector label{font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;}
+  .site-select{
+    border:1.5px solid var(--navy);background:#fff;color:var(--navy);
+    font-family:inherit;font-size:14px;font-weight:700;letter-spacing:.3px;
+    padding:8px 34px 8px 16px;border-radius:12px;cursor:pointer;
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%232D3276'><path d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%232D3276' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:14px;
+  }
+  .site-select:hover{background-color:#EDEDF8;}
+  .site-select:focus{outline:2px solid var(--yellow);outline-offset:1px;}
+
+  /* area tabs */
+  .filters-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:14px;}
+  .area-tabs{display:flex;gap:4px;background:#E7E7F3;padding:4px;border-radius:14px;width:fit-content;}
+  .area-tab{
+    border:none;background:transparent;color:var(--navy);font-family:inherit;
+    font-size:14px;font-weight:700;letter-spacing:.2px;padding:9px 20px;border-radius:11px;
+    cursor:pointer;transition:background .2s,color .2s;display:flex;align-items:center;gap:8px;
+  }
+  .area-tab .n{background:rgba(45,50,118,.1);font-size:11px;font-weight:800;padding:1px 8px;border-radius:999px;}
+  .area-tab.active{background:var(--navy);color:#fff;}
+  .area-tab.active .n{background:rgba(255,255,255,.2);}
+
+  /* inventory table */
+  .inventory-panel{
+    background:var(--bg-card);border-radius:var(--radius);
+    box-shadow:0 2px 10px rgba(31,35,79,.06);margin-bottom:24px;overflow:hidden;
+  }
+  .inv-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .inv-controls select, .inv-controls input{
+    border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;
+    font-family:inherit;font-size:13px;padding:8px 14px;border-radius:10px;outline:none;
+  }
+  .inv-controls select{cursor:pointer;}
+  .inv-controls select option{color:var(--text-primary);}
+  .inv-controls input{width:210px;}
+  .inv-controls input::placeholder{color:rgba(255,255,255,.6);}
+  .inventory-table-wrap{overflow-x:auto;max-height:520px;overflow-y:auto;}
+  table.inventory-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  table.inventory-table thead th{
+    position:sticky;top:0;background:#fff;z-index:1;
+    text-align:left;font-size:11px;color:var(--text-secondary);text-transform:uppercase;
+    letter-spacing:.4px;font-weight:700;padding:14px 24px;border-bottom:2px solid #EFEFF7;
+  }
+  table.inventory-table th.sortable{cursor:pointer;user-select:none;}
+  table.inventory-table th.sortable:hover{color:var(--navy);}
+  table.inventory-table th .sort-arrow{opacity:.4;font-size:10px;margin-left:2px;}
+  table.inventory-table th.sort-active .sort-arrow{opacity:1;color:var(--navy);}
+  table.inventory-table td{padding:12px 24px;border-bottom:1px solid #F2F2F9;vertical-align:middle;}
+  table.inventory-table tbody tr:nth-child(even) td{background:#FBFBFE;}
+  table.inventory-table tr:last-child td{border-bottom:none;}
+  table.inventory-table tr:hover td{background:#F3F3FA;}
+  .inv-sku{
+    font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+    font-size:11.5px;font-weight:700;color:var(--navy);background:#EDEDF8;
+    padding:4px 9px;border-radius:6px;letter-spacing:.3px;
+  }
+  .inv-cat{display:flex;align-items:center;gap:8px;font-weight:600;}
+  .inv-cat .sw{width:8px;height:8px;border-radius:50%;background:var(--navy);flex-shrink:0;}
+  .inv-cat.guantes .sw{background:#1FA37A;}
+  .inv-badge{
+    font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;
+    background:#EDEDF8;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;
+  }
+  .inv-badge.warn{background:#FFF1D6;color:var(--warn);}
+  .inv-badge.danger{background:#FBE0DE;color:var(--danger);}
+  .inv-level{display:flex;align-items:center;gap:10px;min-width:140px;}
+  .inv-level .track{flex:1;height:7px;border-radius:999px;background:#EFEFF7;overflow:hidden;}
+  .inv-level .fill{height:100%;border-radius:999px;background:var(--navy);}
+  .inv-level.warn .fill{background:var(--warn);}
+  .inv-level.danger .fill{background:var(--danger);}
+  .inv-piezas{font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;}
+  .inv-piezas.warn{color:var(--warn);}
+  .inv-piezas.danger{color:var(--danger);}
+  .inventory-empty{padding:40px 24px;text-align:center;color:var(--text-secondary);font-size:13.5px;}
+  .inv-footer{
+    padding:12px 24px;border-top:1px solid #F2F2F9;font-size:12px;color:var(--text-secondary);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+
+  /* activity feed */
+  .activity-panel{
+    background:var(--bg-card);border-radius:var(--radius);
+    box-shadow:0 2px 10px rgba(31,35,79,.06);margin-bottom:24px;overflow:hidden;
+  }
+  .activity-list{padding:6px 24px 10px;}
+  .activity-row{
+    display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid #F2F2F9;
+  }
+  .activity-row:last-child{border-bottom:none;}
+  .activity-icon{
+    width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    font-size:15px;flex-shrink:0;background:#EDEDF8;
+  }
+  .activity-icon.in{background:#E4F6EF;}
+  .activity-icon.out{background:#FBE0DE;}
+  .activity-icon.warn{background:#FFF1D6;}
+  .activity-main{flex:1;min-width:0;}
+  .activity-main .line1{font-size:13.5px;font-weight:600;color:var(--text-primary);}
+  .activity-main .line2{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+  .activity-qty{font-size:15px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .activity-qty.in{color:#1FA37A;}
+  .activity-qty.out{color:var(--danger);}
+  .activity-qty.warn{color:var(--warn);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;}
+  .activity-empty{padding:26px 24px;text-align:center;color:var(--text-secondary);font-size:13.5px;}
+
+  /* hero */
+  .hero{
+    background:var(--navy);
+    background-image:radial-gradient(circle at 100% 0%, rgba(255,230,0,.12), transparent 45%);
+    border-radius:var(--radius);
+    padding:28px 30px;
+    color:#fff;
+    margin-bottom:var(--gap);
+    display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;
+  }
+  .hero h1{font-size:26px;font-weight:800;margin:0 0 6px;}
+  .hero p{margin:0;font-size:13px;color:rgba(255,255,255,.72);}
+  .hero .badge-total{
+    background:var(--yellow);color:var(--navy-dark);font-weight:800;font-size:22px;
+    padding:10px 20px;border-radius:999px;white-space:nowrap;
+  }
+  .hero .badge-total span{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;opacity:.75;}
+  .refresh-btn{
+    width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.3);
+    background:rgba(255,255,255,.1);color:#fff;font-size:17px;cursor:pointer;transition:transform .4s;
+  }
+  .refresh-btn:hover{background:rgba(255,255,255,.2);}
+  .refresh-btn.spinning{animation:spin 0.8s linear infinite;}
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  .live-banner{
+    display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#fff;
+    background:rgba(255,255,255,.12);padding:5px 12px;border-radius:999px;width:fit-content;margin-top:8px;
+  }
+  .live-banner .pulse{width:7px;height:7px;border-radius:50%;background:#4ADE80;box-shadow:0 0 0 rgba(74,222,128,.6);animation:pulse 1.8s infinite;}
+  .live-banner.error .pulse{background:#F5A623;animation:none;}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(74,222,128,.6);}
+    70%{box-shadow:0 0 0 8px rgba(74,222,128,0);}
+    100%{box-shadow:0 0 0 0 rgba(74,222,128,0);}
+  }
+
+  /* KPI row */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--gap);margin-bottom:26px;}
+  .kpi-card{
+    background:var(--bg-card);border-radius:var(--radius);padding:18px 20px;
+    box-shadow:0 2px 10px rgba(31,35,79,.06);
+    border-top:4px solid var(--navy);
+  }
+  .kpi-card.alert{border-top-color:var(--warn);}
+  .kpi-label{font-size:12px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+  .kpi-value{font-size:30px;font-weight:800;color:var(--navy);}
+  .kpi-value.alert{color:var(--warn);}
+  .kpi-sub{font-size:12px;color:var(--text-secondary);margin-top:4px;}
+
+  /* category section */
+  .category{
+    background:var(--bg-card);border-radius:var(--radius);
+    box-shadow:0 2px 10px rgba(31,35,79,.06);
+    margin-bottom:24px;overflow:hidden;
+  }
+  .category-header{
+    background:var(--navy);color:#fff;padding:16px 24px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  }
+  .category-header .title{display:flex;align-items:center;gap:12px;font-size:17px;font-weight:700;}
+  .category-header .icon-badge{
+    width:36px;height:36px;border-radius:10px;background:var(--yellow);
+    display:flex;align-items:center;justify-content:center;font-size:18px;
+  }
+  .category-header .icon-badge svg{width:20px;height:20px;display:block;}
+  .category-header .total-pill{
+    background:rgba(255,255,255,.14);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;
+  }
+  .category-body{padding:24px;}
+
+  .size-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-bottom:22px;
+  }
+  .size-tile{
+    background:#F7F7FC;border-radius:12px;padding:14px 12px;text-align:center;position:relative;
+    border:1px solid #ECECF6;
+  }
+  .size-tile.warn{background:#FFF7E8;border-color:#FCE3AE;}
+  .size-tile.danger{background:#FDEDEC;border-color:#F6C6C3;}
+  .size-tile .talla{font-size:12px;color:var(--text-secondary);font-weight:600;margin-bottom:6px;}
+  .size-tile .piezas{font-size:24px;font-weight:800;color:var(--navy);}
+  .size-tile.warn .piezas{color:var(--warn);}
+  .size-tile.danger .piezas{color:var(--danger);}
+  .size-tile .flag{position:absolute;top:8px;right:10px;font-size:13px;}
+  .size-tile .anom{position:absolute;top:8px;left:10px;font-size:11px;cursor:help;}
+  .size-tile .estado{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:4px;}
+  .size-tile.warn .estado{color:var(--warn);}
+  .size-tile.danger .estado{color:var(--danger);}
+
+  .chart-container{background:#fff;}
+  .chart-container h4{font-size:13px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.4px;margin:0 0 14px;}
+  .chart-container canvas{max-height:220px;}
+
+  .legend-row{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);margin-top:16px;}
+  .legend-row .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;}
+  .legend-row .dot.ok{background:var(--navy);}
+  .legend-row .dot.warn{background:var(--warn);}
+  .legend-row .dot.danger{background:var(--danger);}
+
+  .footer{text-align:center;font-size:12px;color:var(--text-secondary);padding:10px 0;}
+
+  @media (max-width:640px){
+    .hero{flex-direction:column;align-items:flex-start;}
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .size-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));}
+  }
+  /* ===== Rediseño para igualar la suite SHE (Nunito Sans, encabezado amarillo, tarjetas planas) ===== */
+  :root{ --navy:#2D3277; --bg-page:#F2F2EE; --bg-card:#FFFFFD; --text-primary:#1F2147; --text-secondary:#55586E;
+         --line:#E3E3DD; --track:#EDEDE8; --blue:#3483FA; --shadow:0 2px 10px rgba(31,33,71,.08); --radius:14px; }
+  body{ font-family:"Nunito Sans","Proxima Nova",-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:1280px; padding:18px 20px 40px; }
+
+  /* Encabezado amarillo como Carritos y CUIDE */
+  .top{ background:var(--yellow); color:var(--navy); }
+  .top-in{ max-width:1280px; margin:0 auto; padding:18px 20px 16px; display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center; justify-content:space-between; }
+  .brand{ display:flex; align-items:center; gap:14px; min-width:0; }
+  .mark{ width:46px; height:46px; border-radius:50%; background:var(--navy); display:grid; place-items:center; flex:none; }
+  .mark svg{ width:32px; height:32px; }
+  .she{ font-size:11px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:var(--navy); margin-bottom:4px; }
+  .brand h1{ margin:0; font-size:22px; line-height:1.15; font-weight:900; letter-spacing:-.01em; }
+  .brand p{ margin:2px 0 0; font-size:14px; font-weight:600; opacity:.8; }
+  .status{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .live-banner{ display:inline-flex; align-items:center; gap:8px; background:rgba(45,50,119,.1); color:var(--navy);
+                padding:7px 12px; border-radius:999px; font-size:13px; font-weight:700; margin:0; }
+  .live-banner .pulse{ width:9px; height:9px; background:#00A650; box-shadow:0 0 0 0 rgba(0,166,80,.6); }
+  .live-banner.error .pulse{ background:#FF7733; }
+  .total-chip{ display:inline-flex; align-items:center; gap:8px; background:var(--navy); color:#FFFFFD; padding:7px 14px; border-radius:999px; font-size:13px; font-weight:700; }
+  .total-chip b{ color:var(--yellow); font-size:16px; font-weight:900; font-variant-numeric:tabular-nums; }
+  .btn{ border:0; border-radius:6px; padding:9px 16px; font:inherit; font-weight:700; font-size:14px; cursor:pointer; background:var(--navy); color:#fff; display:inline-flex; align-items:center; gap:8px; }
+  .btn:hover{ filter:brightness(1.15); }
+  .btn:focus-visible,.site-select:focus-visible,.area-tab:focus-visible{ outline:3px solid var(--blue); outline-offset:2px; }
+  .btn .ico{ display:inline-block; font-size:16px; line-height:1; }
+  .btn.spinning{ animation:none; }
+  .btn.spinning .ico{ animation:spin .8s linear infinite; }
+
+  /* Filtros: misma tarjeta blanca que en los demás tableros */
+  .filters-row{ background:var(--bg-card); box-shadow:var(--shadow); border-radius:var(--radius); padding:12px 16px; margin-bottom:16px; }
+  .site-selector{ margin-bottom:0; }
+  .site-selector label{ font-size:13px; font-weight:700; color:var(--text-secondary); text-transform:none; letter-spacing:0; }
+  .site-select{ border:1px solid var(--line); border-radius:8px; font-weight:700; font-size:14px; background-color:var(--bg-card); }
+  .site-select:hover{ background-color:var(--track); }
+  .area-tabs{ background:var(--track); border-radius:8px; padding:3px; }
+  .area-tab{ border-radius:6px; font-weight:800; }
+  .area-tab.active{ background:var(--navy); color:#FFFFFD; box-shadow:none; }
+
+  /* KPIs planos, número grande en navy */
+  .kpi-row{ gap:12px; margin-bottom:16px; }
+  .kpi-card{ border-radius:8px; border-top:0; box-shadow:var(--shadow); padding:16px 18px; }
+  .kpi-card::before{ display:none; }
+  .kpi-label{ font-size:13px; font-weight:700; color:var(--text-secondary); text-transform:none; letter-spacing:0; }
+  .kpi-value{ font-size:32px; font-weight:900; line-height:1.1; margin-top:6px; color:var(--navy); font-variant-numeric:tabular-nums; }
+  .kpi-value.alert{ color:#FF7733; }
+  .kpi-sub{ font-size:13px; color:#8C8EA3; margin-top:4px; }
+
+  /* Secciones: tarjeta blanca con título navy, como las tarjetas de CUIDE */
+  .category,.inventory-panel,.activity-panel{ border-radius:var(--radius); box-shadow:var(--shadow); background:var(--bg-card); overflow:hidden; }
+  .category-header{ background:var(--bg-card) !important; color:var(--text-primary); border-bottom:1px solid var(--line); padding:16px 20px; }
+  .category-header .title,.category-header h2,.category-header h3{ color:var(--text-primary); font-weight:900; font-size:18px; }
+  .icon-badge{ background:var(--yellow); border-radius:8px; }
+  .total-pill{ background:var(--track); color:var(--navy); font-weight:800; border-radius:999px; }
+  .size-tile{ border-radius:8px; }
+  .chart-container h4{ font-size:13px; font-weight:700; color:var(--text-secondary); text-transform:none; letter-spacing:0; }
+  table.inventory-table th{ font-size:12.5px; font-weight:800; text-transform:none; letter-spacing:0; }
+  .size-tile{ background:#F7F7F3; border-color:var(--line); }
+  /* ===== Modo oscuro (lo activa el HUB con data-theme="dark"); el encabezado se queda amarillo como en CUIDE y Carritos ===== */
+  :root[data-theme="dark"]{
+    --bg-page:#14152A; --bg-card:#1E2040; --text-primary:#ECEDF7; --text-secondary:#A9ABC4;
+    --line:#30335A; --track:#2A2C50; --shadow:0 2px 10px rgba(0,0,0,.35); --dk-ink:#C9CCFF;
+  }
+  :root[data-theme="dark"] body{ color-scheme:dark; }
+  :root[data-theme="dark"] .kpi-value,
+  :root[data-theme="dark"] .size-tile .piezas,
+  :root[data-theme="dark"] .inv-piezas,
+  :root[data-theme="dark"] .inv-sku,
+  :root[data-theme="dark"] .inv-badge,
+  :root[data-theme="dark"] .total-pill,
+  :root[data-theme="dark"] .area-tab,
+  :root[data-theme="dark"] .site-select,
+  :root[data-theme="dark"] table.inventory-table th.sortable:hover,
+  :root[data-theme="dark"] table.inventory-table th.sort-active .sort-arrow{ color:var(--dk-ink); }
+  :root[data-theme="dark"] .kpi-value.alert,
+  :root[data-theme="dark"] .size-tile.warn .piezas,
+  :root[data-theme="dark"] .inv-piezas.warn{ color:#F5A623; }
+  :root[data-theme="dark"] .size-tile.danger .piezas,
+  :root[data-theme="dark"] .inv-piezas.danger{ color:#ff6b62; }
+  :root[data-theme="dark"] .area-tab.active{ background:var(--yellow); color:#1F234F; }
+  :root[data-theme="dark"] .area-tab .n{ background:rgba(201,204,255,.12); }
+  :root[data-theme="dark"] .area-tab.active .n{ background:rgba(31,35,79,.15); }
+  :root[data-theme="dark"] .site-select{ border-color:var(--line);
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%23c9ccff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>"); }
+  :root[data-theme="dark"] .size-tile{ background:var(--track); border-color:var(--line); }
+  :root[data-theme="dark"] .size-tile.warn{ background:#3a2f14; border-color:#6b5322; }
+  :root[data-theme="dark"] .size-tile.danger{ background:#3d1a20; border-color:#6e2a33; }
+  :root[data-theme="dark"] .chart-container{ background:transparent; }
+  :root[data-theme="dark"] table.inventory-table thead th{ background:var(--bg-card); border-bottom-color:var(--line); }
+  :root[data-theme="dark"] table.inventory-table td{ border-bottom-color:var(--line); }
+  :root[data-theme="dark"] table.inventory-table tbody tr:nth-child(even) td{ background:#22254a; }
+  :root[data-theme="dark"] table.inventory-table tr:hover td{ background:var(--track); }
+  :root[data-theme="dark"] .inv-sku,
+  :root[data-theme="dark"] .inv-badge{ background:var(--track); }
+  :root[data-theme="dark"] .inv-badge.warn{ background:#3a2f14; color:#F5A623; }
+  :root[data-theme="dark"] .inv-badge.danger{ background:#3d1a20; color:#ff6b62; }
+  :root[data-theme="dark"] .inv-level .track{ background:var(--line); }
+  :root[data-theme="dark"] .inv-level .fill{ background:#8C93F0; }
+  :root[data-theme="dark"] .inv-level.warn .fill{ background:#F5A623; }
+  :root[data-theme="dark"] .inv-level.danger .fill{ background:#ff6b62; }
+  :root[data-theme="dark"] .inv-footer{ border-top-color:var(--line); }
+  :root[data-theme="dark"] .inv-controls select option{ color:#1F234F; }
+  :root[data-theme="dark"] .activity-row{ border-bottom-color:var(--line); }
+  :root[data-theme="dark"] .activity-icon{ background:var(--track); }
+  :root[data-theme="dark"] .activity-icon.in{ background:#163a30; }
+  :root[data-theme="dark"] .activity-icon.out{ background:#3d1a20; }
+  :root[data-theme="dark"] .activity-icon.warn{ background:#3a2f14; }
+  :root[data-theme="dark"] .activity-qty.in{ color:#3fd19f; }
+  :root[data-theme="dark"] .activity-qty.out{ color:#ff6b62; }
+  :root[data-theme="dark"] .legend-row .dot.ok{ background:#8C93F0; }
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="brand">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3.6 15.4a8.4 8.4 0 0 1 16.8 0z" fill="#FFE600"/><rect x="10.2" y="5.2" width="3.6" height="6.2" rx="1.2" fill="#FFE600"/><path d="M7.9 15V10.6M16.1 15V10.6" stroke="#2D3277" stroke-width="1.4" stroke-linecap="round"/><rect x="1.6" y="15.4" width="20.8" height="3.4" rx="1.7" fill="#FFE600"/></svg></div>
+    <div>
+      <div class="she">Safety Health Environment (SHE)</div>
+      <h1>Inventario de EPP</h1>
+      <p><span id="topbar-site">MXCD10</span> · Calzado y guantes de seguridad</p>
+    </div>
+  </div>
+  <div class="status">
+    <span class="live-banner" id="live-banner"><span class="pulse"></span><span id="live-banner-text">Conectando…</span></span>
+    <span class="total-chip">Piezas totales <b id="hero-total">0</b></span>
+    <button id="refresh-btn" class="btn" type="button" title="Actualizar ahora"><span class="ico" aria-hidden="true">⟳</span>Actualizar ahora</button>
+  </div>
+</div></header>
+<div class="wrap">
+
+  <div class="filters-row">
+    <div class="area-tabs" id="area-tabs"></div>
+    <div class="site-selector">
+      <label for="site-select">Site</label>
+      <select class="site-select" id="site-select"></select>
+    </div>
+  </div>
+
+  <section class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Piezas de calzado</div>
+      <div class="kpi-value" id="kpi-calzado">0</div>
+      <div class="kpi-sub" id="kpi-calzado-sub"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Piezas de guantes</div>
+      <div class="kpi-value" id="kpi-guantes">0</div>
+      <div class="kpi-sub" id="kpi-guantes-sub"></div>
+    </div>
+    <div class="kpi-card alert">
+      <div class="kpi-label">Tallas agotadas</div>
+      <div class="kpi-value alert" id="kpi-agotadas">0</div>
+      <div class="kpi-sub">0 piezas disponibles</div>
+    </div>
+    <div class="kpi-card alert">
+      <div class="kpi-label">Tallas con stock bajo</div>
+      <div class="kpi-value alert" id="kpi-bajas">0</div>
+      <div class="kpi-sub">Menos de 5 piezas</div>
+    </div>
+  </section>
+
+  <!-- CALZADO -->
+  <section class="category">
+    <div class="category-header">
+      <div class="title"><span class="icon-badge"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M12 6h10a2 2 0 0 1 2 2v10a4 4 0 0 0 4 4h4a4 4 0 0 1 4 4v2a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="#1F234F"/></svg></span> Calzado de seguridad</div>
+      <div class="total-pill" id="calzado-total-pill">0 piezas</div>
+    </div>
+    <div class="category-body">
+      <div class="size-grid" id="grid-calzado"></div>
+      <div class="chart-container">
+        <h4>Piezas por talla</h4>
+        <canvas id="chart-calzado"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- GUANTES -->
+  <section class="category">
+    <div class="category-header">
+      <div class="title"><span class="icon-badge"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="17" width="20" height="15" rx="5" fill="#1F234F"/><rect x="11" y="5" width="4" height="14" rx="2" fill="#1F234F"/><rect x="16" y="3" width="4" height="16" rx="2" fill="#1F234F"/><rect x="21" y="3" width="4" height="16" rx="2" fill="#1F234F"/><rect x="26" y="5" width="4" height="14" rx="2" fill="#1F234F"/><rect x="3" y="19" width="9" height="6" rx="3" fill="#1F234F" transform="rotate(-35 7.5 22)"/></svg></span> Guantes de seguridad</div>
+      <div class="total-pill" id="guantes-total-pill">0 piezas</div>
+    </div>
+    <div class="category-body">
+      <div class="size-grid" id="grid-guantes"></div>
+      <div class="chart-container">
+        <h4>Piezas por medida</h4>
+        <canvas id="chart-guantes"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLA DE INVENTARIO -->
+  <section class="inventory-panel">
+    <div class="category-header">
+      <div class="title"><span class="icon-badge">📋</span> <span id="inv-panel-title">Detalle de inventario — Cuarto de EPP</span></div>
+      <div class="inv-controls">
+        <select id="inv-filter-estado">
+          <option value="todos">Todos los estados</option>
+          <option value="ok">Normal</option>
+          <option value="warn">Stock bajo</option>
+          <option value="danger">Agotado</option>
+        </select>
+        <input type="text" id="inv-search" placeholder="Buscar SKU, talla o medida…">
+      </div>
+    </div>
+    <div class="inventory-table-wrap">
+      <table class="inventory-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Categoría</th>
+            <th>Talla / Medida</th>
+            <th class="sortable" id="th-piezas">Piezas <span class="sort-arrow">↕</span></th>
+            <th>Nivel</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="inv-table-body"></tbody>
+      </table>
+      <div class="inventory-empty" id="inv-empty" style="display:none;">Sin resultados para esa búsqueda.</div>
+    </div>
+    <div class="inv-footer" id="inv-footer"></div>
+  </section>
+
+  <!-- ACTIVIDAD RECIENTE -->
+  <section class="activity-panel">
+    <div class="category-header">
+      <div class="title"><span class="icon-badge">🕒</span> Actividad reciente</div>
+      <div class="total-pill" id="activity-scope-pill">—</div>
+    </div>
+    <div class="activity-list" id="activity-list"></div>
+  </section>
+
+  <div class="legend-row">
+    <span><span class="dot ok"></span>Stock normal</span>
+    <span><span class="dot warn"></span>⚠️ Stock bajo (menos de 5 piezas)</span>
+    <span><span class="dot danger"></span>🔴 Agotado (0 piezas)</span>
+  </div>
+
+</div>
+
+<script>
+if(window.Chart){ Chart.defaults.font.family='"Nunito Sans", Arial, sans-serif'; Chart.defaults.font.weight=600; }
+// ---- Fuente de datos en vivo (hoja publicada como CSV) ----
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQuc_YQe99L6Kd0IrheDNTuFjbmosmtIaLzjGNjtURPjGqsYmwdih2zy58CWpfNijBYbAoUFU6-qNn0/pub?gid=0&single=true&output=csv";
+const AUTO_REFRESH_MS = 60000; // 60s
+
+// Correcciones conocidas de error humano de captura: se identifican por
+// marca temporal + tipo + talla/medida capturados incorrectamente, y se
+// reclasifican antes de calcular el inventario. No modifican la hoja original.
+const CORRECTIONS = [
+  {
+    // El analista capturó "Guantes de seguridad" pero llenó "Talla" con un número de calzado
+    // (ej. "23") en vez de llenar "Medida". Se reclasifica como Calzado.
+    match: r => r.tipo === "Guantes de seguridad" && r.medida === "N/A" && /^\d+$/.test(r.talla),
+    apply: r => { r.tipo = "Calzado"; }
+  },
+  {
+    // El analista capturó "Calzado" pero llenó "Medida" con formato de guante (ej. "7 (S)", "11 (XXL)")
+    // en vez de llenar "Talla". Se reclasifica como Guantes de seguridad.
+    match: r => r.tipo === "Calzado" && r.talla === "N/A" && /\(.+\)\s*$/.test(r.medida),
+    apply: r => { r.tipo = "Guantes de seguridad"; }
+  }
+];
+
+const SHOE_ORDER = ["22","23","24","25","26","27","28","29","30","32","33"];
+const GLOVE_ORDER = ["5 (XSS)","6 (XS)","7 (S)","8 (M)","9 (L)","10 (XL)"];
+const LOW_STOCK_THRESHOLD = 5;
+let ANOMALIES = new Set();
+let charts = {};
+let CURRENT_TABLE_ITEMS = [];
+let TABLE_SORT = {field:'default', dir:1};
+
+// ---- Sites ----
+const SITES = ["MXCD02","MXCD09","MXCD10","MXCD13"];
+const DEFAULT_SITE = "MXCD10"; // registros históricos sin "SITE MX" capturado se asignan aquí
+let currentSite = localStorage.getItem('epp_current_site') || DEFAULT_SITE;
+if (!SITES.includes(currentSite)) currentSite = DEFAULT_SITE; // por si quedó guardado un site ya retirado (ej. MXCD12)
+
+// ---- Áreas (Cuarto de EPP vs Almacén) ----
+const AREAS = ["Cuarto de EPP","Almacén"];
+const DEFAULT_AREA = "Cuarto de EPP"; // registros históricos sin "Ubicación del EPP" capturado se asignan aquí
+let currentArea = localStorage.getItem('epp_current_area') || DEFAULT_AREA;
+
+let ALL_ITEMS = [];
+let ALL_MOVEMENTS = [];
+
+function renderSiteSelector(){
+  const select = document.getElementById('site-select');
+  select.innerHTML = '';
+  SITES.forEach(site=>{
+    const opt = document.createElement('option');
+    opt.value = site;
+    opt.textContent = site;
+    if (site === currentSite) opt.selected = true;
+    select.appendChild(opt);
+  });
+  select.addEventListener('change', ()=>{
+    currentSite = select.value;
+    localStorage.setItem('epp_current_site', currentSite);
+    updateSiteLabels();
+    renderAreaTabs();
+    renderAll(filterCurrent(ALL_ITEMS));
+  });
+}
+
+function renderAreaTabs(){
+  const container = document.getElementById('area-tabs');
+  container.innerHTML = '';
+  AREAS.forEach(area=>{
+    const itemsHere = ALL_ITEMS.filter(i=>i.area===area && i.site===currentSite);
+    const totalCalzado = itemsHere.filter(i=>i.tipo==='Calzado').reduce((s,i)=>s+Math.max(i.piezas,0),0);
+    const totalGuantes = itemsHere.filter(i=>i.tipo==='Guantes de seguridad').reduce((s,i)=>s+Math.max(i.piezas,0),0);
+    const btn = document.createElement('button');
+    btn.className = 'area-tab' + (area === currentArea ? ' active' : '');
+    btn.innerHTML = `${area} <span class="n">👞 ${totalCalzado}</span><span class="n">🧤 ${totalGuantes}</span>`;
+    btn.addEventListener('click', ()=>{
+      currentArea = area;
+      localStorage.setItem('epp_current_area', currentArea);
+      renderAreaTabs();
+      updateAreaLabel();
+      renderAll(filterCurrent(ALL_ITEMS));
+    });
+    container.appendChild(btn);
+  });
+}
+
+function updateSiteLabels(){
+  document.getElementById('topbar-site').textContent = currentSite;
+  document.title = `Inventario de EPP — ${currentSite}`;
+}
+
+function updateAreaLabel(){
+  document.getElementById('inv-panel-title').textContent = `Detalle de inventario — ${currentArea}`;
+}
+
+function filterBySite(items, site){
+  return items.filter(i=>i.site === site);
+}
+
+function filterCurrent(items){
+  return items.filter(i=>i.site === currentSite && i.area === currentArea);
+}
+
+// Parser CSV simple con soporte de campos entre comillas
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i=0;i<text.length;i++){
+    const c = text[i];
+    if (inQuotes){
+      if (c === '"'){
+        if (text[i+1] === '"'){ field += '"'; i++; } else { inQuotes = false; }
+      } else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ','){ row.push(field); field=''; }
+      else if (c === '\n' || c === '\r'){
+        if (field !== '' || row.length){ row.push(field); rows.push(row); row=[]; field=''; }
+        if (c === '\r' && text[i+1] === '\n') i++;
+      } else field += c;
+    }
+  }
+  if (field !== '' || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function buildItemsFromCSV(text){
+  const rows = parseCSV(text).filter(r=>r.length>1);
+  const header = rows[0];
+  const idx = {
+    marca: header.indexOf('Marca temporal'),
+    movimiento: header.indexOf('Tipo de movimiento'),
+    tipo: header.indexOf('Tipo de EPP'),
+    talla: header.indexOf('Talla'),
+    medida: header.indexOf('Medida'),
+    piezas: header.findIndex(h=>h.startsWith('Número de piezas')),
+    site: header.indexOf('SITE MX'),
+    area: header.indexOf('Ubicación del EPP'),
+    analista: header.indexOf('Nombre del analista')
+  };
+  // Movimientos de transferencia entre áreas (no son una entrada/salida real del inventario total,
+  // solo cambian el EPP de lugar). Dirección fija según el nombre exacto del movimiento:
+  const TRANSFER_TO_ALMACEN_RE = /^salida de epp por entrega a almac/i;      // Cuarto de EPP -> Almacén
+  const TRANSFER_TO_CUARTO_RE = /^entrada de epp por regreso de almac/i;     // Almacén -> Cuarto de EPP
+
+  const baseRows = rows.slice(1).map(cols=>{
+    const movimiento = (cols[idx.movimiento]||'').trim();
+    // Se trunca a entero (no se redondea): 1.5 -> 1, -1.5 -> 1 de magnitud.
+    const magnitud = Math.abs(Math.trunc(Number(cols[idx.piezas]) || 0));
+    const siteRaw = (cols[idx.site]||'').trim();
+    const areaRaw = (cols[idx.area]||'').trim();
+    return {
+      marca: (cols[idx.marca]||'').trim(),
+      analista: (cols[idx.analista]||'').trim(),
+      movimiento,
+      tipo: (cols[idx.tipo]||'').trim(),
+      talla: (cols[idx.talla]||'').trim(),
+      medida: (cols[idx.medida]||'').trim(),
+      magnitud,
+      site: siteRaw || DEFAULT_SITE, // registros sin site capturado se asignan al site por defecto
+      area: areaRaw || DEFAULT_AREA // registros sin área capturada se asignan al Cuarto de EPP
+    };
+  }).filter(r=>r.tipo);
+
+  // Corrección de tipo mal capturado se aplica antes de expandir transferencias (no depende de área/piezas).
+  baseRows.forEach(r=>{ CORRECTIONS.forEach(c=>{ if (c.match(r)) c.apply(r); }); });
+
+  // Una fila normal genera 1 movimiento firmado; una transferencia genera 2 (sale de un área, entra a la otra)
+  // para que el total nunca desaparezca, solo se mueva. Una captura inválida (Talla y Medida llenas a la vez)
+  // se rechaza del inventario y se conserva solo para mostrarse como advertencia en Actividad reciente.
+  const parsed = [];
+  baseRows.forEach(r=>{
+    const { magnitud, ...base } = r;
+    const capturaInvalida = r.talla !== 'N/A' && r.medida !== 'N/A';
+    if (capturaInvalida){
+      parsed.push({ ...base, piezas: 0, piezasIntentadas: magnitud, invalido: true });
+      return;
+    }
+    if (TRANSFER_TO_ALMACEN_RE.test(r.movimiento)){
+      parsed.push({ ...base, area: 'Cuarto de EPP', piezas: -magnitud });
+      parsed.push({ ...base, area: 'Almacén', piezas: magnitud });
+    } else if (TRANSFER_TO_CUARTO_RE.test(r.movimiento)){
+      parsed.push({ ...base, area: 'Almacén', piezas: -magnitud });
+      parsed.push({ ...base, area: 'Cuarto de EPP', piezas: magnitud });
+    } else {
+      const esSalida = /^salida/i.test(r.movimiento);
+      parsed.push({ ...base, piezas: esSalida ? -magnitud : magnitud });
+    }
+  });
+
+  const newAnomalies = new Set();
+  parsed.forEach(r=>{
+    if (r.invalido) return;
+    const after = r.tipo + '|' + r.talla + '|' + r.medida;
+    // si tras normalizar sigue sin encajar en el patrón esperado de esa columna, se marca
+    const talla = r.talla !== 'N/A' ? r.talla : r.medida;
+    const expected = r.tipo === 'Calzado' ? SHOE_ORDER : GLOVE_ORDER;
+    if (!expected.includes(talla)) newAnomalies.add(after);
+  });
+  ANOMALIES = newAnomalies;
+
+  const map = new Map();
+  parsed.forEach(r=>{
+    if (r.invalido) return; // captura inválida: no se cuenta en el inventario
+    const key = `${r.tipo}|${r.talla}|${r.medida}`;
+    const fullKey = `${r.site}|${r.area}|${key}`;
+    if (map.has(fullKey)){
+      map.get(fullKey).piezas += r.piezas;
+    } else {
+      map.set(fullKey, {tipo:r.tipo, talla:r.talla, medida:r.medida, piezas:r.piezas, site:r.site, area:r.area, key});
+    }
+  });
+  // El inventario nunca puede mostrarse en negativo: se limita a 0 como piso (sin techo).
+  ALL_MOVEMENTS = parsed;
+  return Array.from(map.values()).map(i=>({...i, piezas: Math.max(0, i.piezas)}));
+}
+
+function estadoFor(piezas){
+  if (piezas <= 0) return 'danger';
+  if (piezas < LOW_STOCK_THRESHOLD) return 'warn';
+  return 'ok';
+}
+
+function labelFor(item){ return item.talla !== 'N/A' ? item.talla : item.medida; }
+
+function skuFor(item){
+  const prefix = item.tipo === 'Calzado' ? 'CZ' : 'GT';
+  const clean = labelFor(item).replace(/[\s()]/g, '').toUpperCase();
+  return `${prefix}-${clean}`;
+}
+
+// Convierte "13/9/2026 10:53:07" -> Date. Devuelve null si no logra parsear.
+function parseMarca(str){
+  if (!str) return null;
+  const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return null;
+  const [, d, mo, y, h, mi, s] = m;
+  return new Date(+y, +mo-1, +d, +h, +mi, +(s||0));
+}
+
+function renderGrid(containerId, items, order){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const sorted = [...items].sort((a,b)=> order.indexOf(labelFor(a)) - order.indexOf(labelFor(b)));
+  // anomalías van al final
+  const normal = sorted.filter(i=>order.includes(labelFor(i)));
+  const anómalos = items.filter(i=>!order.includes(labelFor(i)));
+  [...normal, ...anómalos].forEach(item=>{
+    const estado = estadoFor(item.piezas);
+    const div = document.createElement('div');
+    div.className = `size-tile ${estado !== 'ok' ? estado : ''}`;
+    const isAnomaly = ANOMALIES.has(item.key);
+    div.innerHTML = `
+      ${isAnomaly ? `<span class="anom" title="Formato inusual: revisar captura original">✳️</span>` : ''}
+      ${estado==='danger' ? '<span class="flag">🔴</span>' : (estado==='warn' ? '<span class="flag">⚠️</span>' : '')}
+      <div class="talla">Talla ${labelFor(item)}</div>
+      <div class="piezas">${item.piezas}</div>
+      <div class="estado">${estado==='danger' ? 'Agotado' : (estado==='warn' ? 'Stock bajo' : '')}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function eppDark(){ return document.documentElement.getAttribute('data-theme')==='dark'; }
+function renderChart(canvasId, items, order, color){
+  const sorted = [...items].sort((a,b)=> order.indexOf(labelFor(a)) - order.indexOf(labelFor(b)));
+  const anómalos = items.filter(i=>!order.includes(labelFor(i)));
+  const all = [...sorted.filter(i=>order.includes(labelFor(i))), ...anómalos];
+  if (charts[canvasId]) charts[canvasId].destroy();
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  charts[canvasId] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: all.map(i=> labelFor(i) + (ANOMALIES.has(i.key) ? ' ✳️' : '')),
+      datasets:[{
+        label:'Piezas',
+        data: all.map(i=>i.piezas),
+        backgroundColor: all.map(i=>{
+          const e = estadoFor(i.piezas);
+          return e==='danger' ? '#E1332B' : (e==='warn' ? '#F5A623' : (eppDark() ? '#8C93F0' : color));
+        }),
+        borderRadius:6
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:eppDark()?'#a9adc8':'#666'},grid:{color:eppDark()?'rgba(201,204,255,.08)':'rgba(0,0,0,.1)'}},y:{beginAtZero:true, ticks:{precision:0,color:eppDark()?'#a9adc8':'#666'},grid:{color:eppDark()?'rgba(201,204,255,.08)':'rgba(0,0,0,.1)'}}}
+    }
+  });
+}
+
+function renderAll(items){
+  const calzado = items.filter(i=>i.tipo==='Calzado');
+  const guantes = items.filter(i=>i.tipo==='Guantes de seguridad');
+
+  const totalCalzado = calzado.reduce((s,i)=>s+i.piezas,0);
+  const totalGuantes = guantes.reduce((s,i)=>s+i.piezas,0);
+  const totalGeneral = totalCalzado + totalGuantes;
+
+  document.getElementById('hero-total').textContent = totalGeneral.toLocaleString();
+  document.getElementById('kpi-calzado').textContent = totalCalzado.toLocaleString();
+  document.getElementById('kpi-calzado-sub').textContent = `${calzado.length} tallas registradas`;
+  document.getElementById('kpi-guantes').textContent = totalGuantes.toLocaleString();
+  document.getElementById('kpi-guantes-sub').textContent = `${guantes.length} medidas registradas`;
+  document.getElementById('calzado-total-pill').textContent = `${totalCalzado.toLocaleString()} piezas`;
+  document.getElementById('guantes-total-pill').textContent = `${totalGuantes.toLocaleString()} piezas`;
+
+  const agotadas = items.filter(i=>i.piezas<=0).length;
+  const bajas = items.filter(i=>i.piezas>0 && i.piezas<LOW_STOCK_THRESHOLD).length;
+  document.getElementById('kpi-agotadas').textContent = agotadas;
+  document.getElementById('kpi-bajas').textContent = bajas;
+
+  renderGrid('grid-calzado', calzado, SHOE_ORDER);
+  renderGrid('grid-guantes', guantes, GLOVE_ORDER);
+  renderChart('chart-calzado', calzado, SHOE_ORDER, '#2D3277');
+  renderChart('chart-guantes', guantes, GLOVE_ORDER, '#2D3277');
+  renderInventoryTable(items);
+  renderActivityFeed();
+}
+
+function renderInventoryTable(items){
+  CURRENT_TABLE_ITEMS = items;
+  const term = (document.getElementById('inv-search').value || '').trim().toLowerCase();
+  const estadoFiltro = document.getElementById('inv-filter-estado').value;
+  const calzado = items.filter(i=>i.tipo==='Calzado');
+  const guantes = items.filter(i=>i.tipo==='Guantes de seguridad');
+  const sortedCalzado = [...calzado].sort((a,b)=> SHOE_ORDER.indexOf(labelFor(a)) - SHOE_ORDER.indexOf(labelFor(b)));
+  const sortedGuantes = [...guantes].sort((a,b)=> GLOVE_ORDER.indexOf(labelFor(a)) - GLOVE_ORDER.indexOf(labelFor(b)));
+  let all = [...sortedCalzado, ...sortedGuantes];
+
+  const maxCalzado = Math.max(1, ...calzado.map(i=>Math.max(i.piezas,0)));
+  const maxGuantes = Math.max(1, ...guantes.map(i=>Math.max(i.piezas,0)));
+
+  if (TABLE_SORT.field === 'piezas'){
+    all = [...all].sort((a,b)=> TABLE_SORT.dir * (a.piezas - b.piezas));
+  }
+
+  let filtered = term
+    ? all.filter(i=> i.tipo.toLowerCase().includes(term) || labelFor(i).toLowerCase().includes(term) || skuFor(i).toLowerCase().includes(term))
+    : all;
+  if (estadoFiltro !== 'todos'){
+    filtered = filtered.filter(i=> estadoFor(i.piezas) === estadoFiltro);
+  }
+
+  const tbody = document.getElementById('inv-table-body');
+  const empty = document.getElementById('inv-empty');
+  const footer = document.getElementById('inv-footer');
+  tbody.innerHTML = '';
+
+  const totalPiezas = all.reduce((s,i)=>s+i.piezas,0);
+  footer.innerHTML = `<span>${filtered.length} de ${all.length} SKUs mostrados</span><span>${totalPiezas.toLocaleString()} piezas totales en esta vista</span>`;
+
+  if (!filtered.length){
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  filtered.forEach(item=>{
+    const estado = estadoFor(item.piezas);
+    const max = item.tipo === 'Calzado' ? maxCalzado : maxGuantes;
+    const pct = Math.max(item.piezas>0 ? 6 : 0, Math.round((Math.max(item.piezas,0) / max) * 100));
+    const estadoLabel = estado==='danger' ? 'Agotado' : (estado==='warn' ? 'Stock bajo' : 'Normal');
+    const isAnomaly = ANOMALIES.has(item.key);
+    const catClass = item.tipo === 'Calzado' ? '' : 'guantes';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="inv-sku">${skuFor(item)}</span></td>
+      <td><div class="inv-cat ${catClass}"><span class="sw"></span>${item.tipo}</div></td>
+      <td>${labelFor(item)} ${isAnomaly ? '<span title="Formato inusual: revisar captura original">✳️</span>' : ''}</td>
+      <td><span class="inv-piezas ${estado!=='ok'?estado:''}">${item.piezas.toLocaleString()}</span></td>
+      <td>
+        <div class="inv-level ${estado!=='ok'?estado:''}">
+          <div class="track"><div class="fill" style="width:${pct}%;"></div></div>
+        </div>
+      </td>
+      <td><span class="inv-badge ${estado!=='ok'?estado:''}">${estadoLabel}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderActivityFeed(){
+  const scope = ALL_MOVEMENTS.filter(m => m.site === currentSite && m.area === currentArea);
+  const sorted = [...scope].sort((a,b)=>{
+    const da = parseMarca(a.marca), db = parseMarca(b.marca);
+    if (!da || !db) return 0;
+    return db - da;
+  }).slice(0, 8);
+
+  document.getElementById('activity-scope-pill').textContent = `${currentSite} · ${currentArea}`;
+  const list = document.getElementById('activity-list');
+  list.innerHTML = '';
+
+  if (!sorted.length){
+    list.innerHTML = '<div class="activity-empty">Sin movimientos registrados en este site/área todavía.</div>';
+    return;
+  }
+
+  sorted.forEach(m=>{
+    if (m.invalido){
+      const row = document.createElement('div');
+      row.className = 'activity-row';
+      row.innerHTML = `
+        <div class="activity-icon warn">⚠️</div>
+        <div class="activity-main">
+          <div class="line1">Captura inválida — ${m.tipo}</div>
+          <div class="line2">Talla "${m.talla}" y Medida "${m.medida}" llenas a la vez, no se contó en el inventario · ${m.marca}${m.analista ? ' · ' + m.analista : ''}</div>
+        </div>
+        <div class="activity-qty warn">Revisar</div>
+      `;
+      list.appendChild(row);
+      return;
+    }
+    const isSalida = m.piezas < 0;
+    const label = m.talla !== 'N/A' ? m.talla : m.medida;
+    const row = document.createElement('div');
+    row.className = 'activity-row';
+    row.innerHTML = `
+      <div class="activity-icon ${isSalida ? 'out':'in'}">${isSalida ? '↓' : '↑'}</div>
+      <div class="activity-main">
+        <div class="line1">${m.tipo} · ${label}</div>
+        <div class="line2">${m.marca}${m.analista ? ' · ' + m.analista : ''}</div>
+      </div>
+      <div class="activity-qty ${isSalida ? 'out':'in'}">${isSalida ? '' : '+'}${m.piezas}</div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function setLiveBanner(state, text){
+  const banner = document.getElementById('live-banner');
+  const label = document.getElementById('live-banner-text');
+  banner.classList.toggle('error', state === 'error');
+  label.textContent = text;
+}
+
+async function fetchCSVText(){
+  const bust = '&_=' + Date.now();
+  // 1) Intento directo
+  try{
+    const res = await fetch(CSV_URL + bust, {cache:'no-store'});
+    if (res.ok) return await res.text();
+  }catch(e){ /* seguimos al proxy */ }
+
+  // 2) Proxy CORS #1
+  try{
+    const proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL + bust);
+    const res2 = await fetch(proxied, {cache:'no-store'});
+    if (res2.ok) return await res2.text();
+  }catch(e){ /* seguimos al siguiente proxy */ }
+
+  // 3) Proxy CORS #2 (respaldo si el primero está caído)
+  const proxied2 = 'https://corsproxy.io/?url=' + encodeURIComponent(CSV_URL + bust);
+  const res3 = await fetch(proxied2, {cache:'no-store'});
+  if (!res3.ok) throw new Error('HTTP ' + res3.status);
+  return await res3.text();
+}
+
+async function loadData(isManual){
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  setLiveBanner('loading', 'Actualizando…');
+  try{
+    const text = await fetchCSVText();
+    ALL_ITEMS = buildItemsFromCSV(text);
+    renderAreaTabs();
+    renderAll(filterCurrent(ALL_ITEMS));
+    const now = new Date();
+    const hora = now.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+    setLiveBanner('ok', `En vivo · última actualización ${hora}`);
+  }catch(err){
+    console.error('No se pudo actualizar desde la hoja', err);
+    setLiveBanner('error', 'No se pudo conectar a la hoja — mostrando el último dato cargado');
+  }finally{
+    btn.classList.remove('spinning');
+  }
+}
+
+renderSiteSelector();
+renderAreaTabs();
+updateSiteLabels();
+updateAreaLabel();
+document.getElementById('inv-search').addEventListener('input', ()=>renderInventoryTable(CURRENT_TABLE_ITEMS));
+document.getElementById('inv-filter-estado').addEventListener('change', ()=>renderInventoryTable(CURRENT_TABLE_ITEMS));
+document.getElementById('th-piezas').addEventListener('click', ()=>{
+  if (TABLE_SORT.field !== 'piezas'){ TABLE_SORT = {field:'piezas', dir:-1}; }
+  else { TABLE_SORT.dir *= -1; }
+  document.getElementById('th-piezas').classList.add('sort-active');
+  document.querySelector('#th-piezas .sort-arrow').textContent = TABLE_SORT.dir === 1 ? '↑' : '↓';
+  renderInventoryTable(CURRENT_TABLE_ITEMS);
+});
+document.getElementById('refresh-btn').addEventListener('click', ()=>loadData(true));
+loadData(false);
+setInterval(()=>loadData(false), AUTO_REFRESH_MS);
+new MutationObserver(()=>{ if (ALL_ITEMS.length) renderAll(filterCurrent(ALL_ITEMS)); }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>
+</body>
+</html>
